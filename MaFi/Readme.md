@@ -11,10 +11,10 @@ Methods, vol. 56, no. 5, pp. 4786–4801, August 2024.
 
 Our calculated ViPS score on the MaFi dataset is presented in the `Norms` folder. You can find the results in the following file:
 
-- [MaFI_Combined_with_ViPS_and_other_Scores.csv](../Norms/MaFI_Combined_with_ViPS_and_other_Scores.csv)
+- [MaFI_Combined_with_ViPS_and_other_Scores.csv](../MaFi/Norms/MaFI_Combined_with_ViPS_and_other_Scores.csv)
 
 ## Behavioural Data
 
 Behavioural data related to the MaFi dataset is available in the `Behavioural Data` folder. You can find the complete data in the following file:
 
-- [DataComplete_IPA_Dist_with_ViPS.xlsx](../Behavioural%20Data/DataComplete_IPA_Dist_with_ViPS.xlsx)
+- [DataComplete_IPA_Dist_with_ViPS.xlsx](..Mafi//Behavioural%20Data/DataComplete_IPA_Dist_with_ViPS.xlsx)
