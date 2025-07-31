@@ -1,0 +1,53 @@
+{
+  "num_examples": 1243,
+  "standard": {
+    "avg_viseme_score": 0.7492054667575866,
+    "avg_phonetic_distance": 4.1791700187717895,
+    "avg_phonetic_score": 0.8239142690653313
+  },
+  "weighted": {
+    "avg_phonetically_weighted_viseme_score": 0.8705347970000378,
+    "avg_phonetic_distance": 3.248035244728281,
+    "avg_phonetic_score": 0.8638235545879761
+  },
+  "comparison": {
+    "avg_score_difference": 0.12132933024245117,
+    "max_score_improvement": 0.6104847626449511,
+    "avg_phonetic_score_difference": 0.03990928552264473,
+    "max_phonetic_score_improvement": 0.2312328224721253,
+    "percent_viseme_improved": 68.22204344328237,
+    "percent_viseme_unchanged": 31.77795655671762,
+    "percent_viseme_worse": 0.0,
+    "percent_phonetic_improved": 69.99195494770716,
+    "percent_phonetic_unchanged": 30.008045052292843,
+    "percent_phonetic_worse": 0.0
+  },
+  "additional_metrics": {
+    "character_error_rate": 0.2794577685088634,
+    "word_error_rate": 0.43423423423423424,
+    "word_similarity": 0.7769054354130539,
+    "meteor_score": 0.5822632719535621,
+    "rouge1_score": 0.6330501774406441,
+    "rouge2_score": 0.49814264741933734,
+    "rougeL_score": 0.6318511939989964,
+    "sentence_bleu_score": 0.37238675176922814,
+    "bertscore_precision": 0.9180730581283569,
+    "bertscore_recall": 0.9197062253952026,
+    "bertscore_f1": 0.9187938570976257,
+    "semantic_similarity": 0.6020863447023656,
+    "semantic_wer": 0.39791365529763445
+  },
+  "character_error_rate": 0.2794577685088634,
+  "word_error_rate": 0.43423423423423424,
+  "word_similarity": 0.7769054354130539,
+  "meteor_score": 0.5822632719535621,
+  "rouge1_score": 0.6330501774406441,
+  "rouge2_score": 0.49814264741933734,
+  "rougeL_score": 0.6318511939989964,
+  "sentence_bleu_score": 0.37238675176922814,
+  "bertscore_precision": 0.9180730581283569,
+  "bertscore_recall": 0.9197062253952026,
+  "bertscore_f1": 0.9187938570976257,
+  "semantic_similarity": 0.6020863447023656,
+  "semantic_wer": 0.39791365529763445
+}

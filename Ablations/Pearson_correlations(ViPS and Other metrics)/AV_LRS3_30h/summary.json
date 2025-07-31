@@ -1,0 +1,53 @@
+{
+  "num_examples": 1321,
+  "standard": {
+    "avg_viseme_score": 0.9875831615662742,
+    "avg_phonetic_distance": 0.3208743376230129,
+    "avg_phonetic_score": 0.9904199422507018
+  },
+  "weighted": {
+    "avg_phonetically_weighted_viseme_score": 0.9913895379418715,
+    "avg_phonetic_distance": 0.2928997188338374,
+    "avg_phonetic_score": 0.9913107262770572
+  },
+  "comparison": {
+    "avg_score_difference": 0.0038063763755974665,
+    "max_score_improvement": 0.22299013467366036,
+    "avg_phonetic_score_difference": 0.0008907840263552807,
+    "max_phonetic_score_improvement": 0.10718096801484722,
+    "percent_viseme_improved": 8.856926570779713,
+    "percent_viseme_unchanged": 91.1430734292203,
+    "percent_viseme_worse": 0.0,
+    "percent_phonetic_improved": 10.068130204390613,
+    "percent_phonetic_unchanged": 89.93186979560939,
+    "percent_phonetic_worse": 0.0
+  },
+  "additional_metrics": {
+    "character_error_rate": 0.015115577889447236,
+    "word_error_rate": 0.03276036400404449,
+    "word_similarity": 0.9894586791188579,
+    "meteor_score": 0.9655937541790651,
+    "rouge1_score": 0.9738716473985201,
+    "rouge2_score": 0.954781082714515,
+    "rougeL_score": 0.9738716473985201,
+    "sentence_bleu_score": 0.8908510506197852,
+    "bertscore_precision": 0.9921181201934814,
+    "bertscore_recall": 0.9928818345069885,
+    "bertscore_f1": 0.992483913898468,
+    "semantic_similarity": 0.9637764963482836,
+    "semantic_wer": 0.03622350365171645
+  },
+  "character_error_rate": 0.015115577889447236,
+  "word_error_rate": 0.03276036400404449,
+  "word_similarity": 0.9894586791188579,
+  "meteor_score": 0.9655937541790651,
+  "rouge1_score": 0.9738716473985201,
+  "rouge2_score": 0.954781082714515,
+  "rougeL_score": 0.9738716473985201,
+  "sentence_bleu_score": 0.8908510506197852,
+  "bertscore_precision": 0.9921181201934814,
+  "bertscore_recall": 0.9928818345069885,
+  "bertscore_f1": 0.992483913898468,
+  "semantic_similarity": 0.9637764963482836,
+  "semantic_wer": 0.03622350365171645
+}

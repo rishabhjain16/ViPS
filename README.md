@@ -6,3 +6,14 @@ ViPS is a unified audio-visual analysis framework that evaluates the similarity 
 
 ### Code: 
 Code will be provided in coming months.
+
+
+#### Note on Terminology in Folders and Ablations
+
+In some added folders and ablation experiments, you may find references to ViPS as "WVS" or "WPS." These were earlier names used before we finalized the term "ViPS," while we were exploring different ablation settings and experimental variations. All such references correspond to the current ViPS metric.
+
+**Weighted Phonetic Score (WPS):**
+The Weighted Phonetic Score quantifies the similarity between reference and hypothesis transcriptions by considering the articulatory and phonetic features of each phoneme. 
+
+**Weighted Visemic Score (WVS):**
+It is slightly different from WPS as the Weighted Visemic Score measures the similarity between reference and hypothesis transcriptions based on visual speech features (visemes). which were mapped using WPS as done in ViPS.

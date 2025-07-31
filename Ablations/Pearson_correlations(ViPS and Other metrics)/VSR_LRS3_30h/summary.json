@@ -1,0 +1,53 @@
+{
+  "num_examples": 1321,
+  "standard": {
+    "avg_viseme_score": 0.7971759955611891,
+    "avg_phonetic_distance": 4.51602321473631,
+    "avg_phonetic_score": 0.8574540140873439
+  },
+  "weighted": {
+    "avg_phonetically_weighted_viseme_score": 0.8952536564114058,
+    "avg_phonetic_distance": 3.5203808618970376,
+    "avg_phonetic_score": 0.8897713587945254
+  },
+  "comparison": {
+    "avg_score_difference": 0.09807766085021652,
+    "max_score_improvement": 0.6597135009623653,
+    "avg_phonetic_score_difference": 0.0323173447071812,
+    "max_phonetic_score_improvement": 0.2204280294980645,
+    "percent_viseme_improved": 64.64799394398183,
+    "percent_viseme_unchanged": 35.35200605601817,
+    "percent_viseme_worse": 0.0,
+    "percent_phonetic_improved": 66.3890991672975,
+    "percent_phonetic_unchanged": 33.6109008327025,
+    "percent_phonetic_worse": 0.0
+  },
+  "additional_metrics": {
+    "character_error_rate": 0.21386934673366834,
+    "word_error_rate": 0.3313447927199191,
+    "word_similarity": 0.8203344578872995,
+    "meteor_score": 0.6693083314173647,
+    "rouge1_score": 0.7072936165443924,
+    "rouge2_score": 0.5848682708458746,
+    "rougeL_score": 0.7060145376850084,
+    "sentence_bleu_score": 0.4822580954749382,
+    "bertscore_precision": 0.9328269362449646,
+    "bertscore_recall": 0.9358112812042236,
+    "bertscore_f1": 0.9342583417892456,
+    "semantic_similarity": 0.6789586454965484,
+    "semantic_wer": 0.3210413545034516
+  },
+  "character_error_rate": 0.21386934673366834,
+  "word_error_rate": 0.3313447927199191,
+  "word_similarity": 0.8203344578872995,
+  "meteor_score": 0.6693083314173647,
+  "rouge1_score": 0.7072936165443924,
+  "rouge2_score": 0.5848682708458746,
+  "rougeL_score": 0.7060145376850084,
+  "sentence_bleu_score": 0.4822580954749382,
+  "bertscore_precision": 0.9328269362449646,
+  "bertscore_recall": 0.9358112812042236,
+  "bertscore_f1": 0.9342583417892456,
+  "semantic_similarity": 0.6789586454965484,
+  "semantic_wer": 0.3210413545034516
+}

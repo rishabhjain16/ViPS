@@ -1,0 +1,53 @@
+{
+  "num_examples": 1243,
+  "standard": {
+    "avg_viseme_score": 0.9557033111937624,
+    "avg_phonetic_distance": 0.8803298471440064,
+    "avg_phonetic_score": 0.959978644374069
+  },
+  "weighted": {
+    "avg_phonetically_weighted_viseme_score": 0.962317577107945,
+    "avg_phonetic_distance": 0.8403339383439615,
+    "avg_phonetic_score": 0.9620580166879832
+  },
+  "comparison": {
+    "avg_score_difference": 0.006614265914182659,
+    "max_score_improvement": 0.2636359122324995,
+    "avg_phonetic_score_difference": 0.002079372313914038,
+    "max_phonetic_score_improvement": 0.2223141880984606,
+    "percent_viseme_improved": 9.010458567980692,
+    "percent_viseme_unchanged": 90.98954143201931,
+    "percent_viseme_worse": 0.0,
+    "percent_phonetic_improved": 9.814963797264681,
+    "percent_phonetic_unchanged": 90.18503620273532,
+    "percent_phonetic_worse": 0.0
+  },
+  "additional_metrics": {
+    "character_error_rate": 0.042544316996871744,
+    "word_error_rate": 0.07297297297297298,
+    "word_similarity": 0.9714481790915436,
+    "meteor_score": 0.9270093716822277,
+    "rouge1_score": 0.9460732818974558,
+    "rouge2_score": 0.915649722359929,
+    "rougeL_score": 0.9460732818974558,
+    "sentence_bleu_score": 0.796660796110702,
+    "bertscore_precision": 0.9835003614425659,
+    "bertscore_recall": 0.9820824861526489,
+    "bertscore_f1": 0.9827530384063721,
+    "semantic_similarity": 0.9398312088362842,
+    "semantic_wer": 0.06016879116371576
+  },
+  "character_error_rate": 0.042544316996871744,
+  "word_error_rate": 0.07297297297297298,
+  "word_similarity": 0.9714481790915436,
+  "meteor_score": 0.9270093716822277,
+  "rouge1_score": 0.9460732818974558,
+  "rouge2_score": 0.915649722359929,
+  "rougeL_score": 0.9460732818974558,
+  "sentence_bleu_score": 0.796660796110702,
+  "bertscore_precision": 0.9835003614425659,
+  "bertscore_recall": 0.9820824861526489,
+  "bertscore_f1": 0.9827530384063721,
+  "semantic_similarity": 0.9398312088362842,
+  "semantic_wer": 0.06016879116371576
+}
