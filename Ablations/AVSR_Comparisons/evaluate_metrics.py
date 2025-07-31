@@ -164,7 +164,7 @@ def main():
     
     # Get list of model directories
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    model_dirs = ['avec', 'AV_relscore', 'auto-avsr']
+    model_dirs = ['AVEC', 'AV_Relscore', 'Auto-AVSR']
     
     # Store all results
     all_results = []

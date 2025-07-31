@@ -8,6 +8,9 @@ This folder provides a pipeline to evaluate ASR (Automatic Speech Recognition) o
 
 ## Directory Structure
 
+
+**Note:** The folders `AVEC`, `AV_relscore`, and `Auto-AVSR` in this repository contain SNR scores for the LRS3 dataset. However, you can create data in this structure for any other dataset by following the same folder and file organization.
+
 Organize your data as follows:
 
 ```

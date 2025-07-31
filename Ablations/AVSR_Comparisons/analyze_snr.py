@@ -1104,7 +1104,7 @@ def plot_selected_metrics_horizontal_no_labels(df, output_dir):
 
 def main():
     # Read the metrics data
-    df = pd.read_csv('compare_avsr/all_metrics.csv')
+    df = pd.read_csv('./all_metrics.csv')
     
     # Create output directory
     output_dir = Path('snr_analysis')
