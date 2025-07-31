@@ -1,9 +1,11 @@
 
 ## Citation
 
-If you use the MaFi dataset, cite the following paper:
+We use the MaFi dataset for our experiments with ViPS as cited below:
 
-> [MaFi: A Dataset for ...] (Add full citation details here as appropriate from the MaFi.pdf)
+> A. Krason, Y. Zhang, H. Man, and G. Vigliocco, “Mouth and facial
+informativeness norms for 2276 english words,” Behavior Research
+Methods, vol. 56, no. 5, pp. 4786–4801, August 2024.
 
 ## ViPS Score on MaFi Dataset
 
