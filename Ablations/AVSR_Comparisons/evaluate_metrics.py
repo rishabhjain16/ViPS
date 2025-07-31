@@ -1,4 +1,9 @@
+# Ensure parent directory is in sys.path before any other imports
+import sys
 import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+
+from vips import WeightedLipReadingEvaluator
 import pandas as pd
 from tqdm import tqdm
 import numpy as np
@@ -8,11 +13,9 @@ from sklearn.metrics import accuracy_score
 import jiwer
 from sentence_transformers import SentenceTransformer
 from scipy.stats import pearsonr
-from vips import WeightedLipReadingEvaluator
 import pickle
 import logging
 import warnings
-
 # Suppress unnecessary warnings
 warnings.filterwarnings('ignore')
 
