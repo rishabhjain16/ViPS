@@ -1,0 +1,22 @@
+# Ignore Python cache and temporary files
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.cache/
+cache/
+**/cache/
+**/cache/*
+.ipynb_checkpoints/
+.DS_Store
+.env
+.venv
+*.log
+*.tmp
+*.bak
+# VSCode settings
+.vscode/

@@ -1,0 +1,14 @@
+# Requirements for ViPS metric and related scripts
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+phonemizer
+panphon
+nltk
+rouge-score
+torch
+sentence-transformers
+bert-score
+csv
