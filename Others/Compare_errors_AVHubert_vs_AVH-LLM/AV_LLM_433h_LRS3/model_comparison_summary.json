@@ -1,0 +1,105 @@
+{
+  "model1_name": "Avhubert",
+  "model2_name": "Llama2-Avhubert",
+  "metrics_comparison": {
+    "phonetic_edit_distance": {
+      "model1_value": 2.4653450668685335,
+      "model2_value": 2.7676681175876863,
+      "difference": -0.3023230507191528,
+      "percent_difference": -10.923385242543427
+    },
+    "rouge1_score": {
+      "model1_value": 0.7343563746106895,
+      "model2_value": 0.7366383252933512,
+      "difference": -0.002281950682661682,
+      "percent_difference": -0.3097789789518407
+    },
+    "corpus_bleu_score": {
+      "model1_value": 61.23715296176212,
+      "model2_value": 63.07694269104489,
+      "difference": -1.8397897292827707,
+      "percent_difference": -2.9167389077403207
+    },
+    "wer": {
+      "model1_value": 0.2866531850353893,
+      "model2_value": 0.2845298281092012,
+      "difference": 0.0021233569261880914,
+      "percent_difference": 0.7462686567164258
+    },
+    "sentence_bleu_score": {
+      "model1_value": 52.74845854877097,
+      "model2_value": 54.893600485330055,
+      "difference": -2.145141936559085,
+      "percent_difference": -3.9078178833111155
+    },
+    "bertscore_precision": {
+      "model1_value": 0.9401119947433472,
+      "model2_value": 0.946320116519928,
+      "difference": -0.0062081217765808105,
+      "percent_difference": -0.6560276663473081
+    },
+    "bertscore_f1": {
+      "model1_value": 0.9406474232673645,
+      "model2_value": 0.9457870125770569,
+      "difference": -0.005139589309692383,
+      "percent_difference": -0.5434193154850115
+    },
+    "word_similarity": {
+      "model1_value": 0.8351744012255967,
+      "model2_value": 0.8306503284230959,
+      "difference": 0.004524072802500778,
+      "percent_difference": 0.5446422697610034
+    },
+    "rougeL_score": {
+      "model1_value": 0.7325682281770026,
+      "model2_value": 0.7359362631991079,
+      "difference": -0.0033680350221052535,
+      "percent_difference": -0.4576530863507714
+    },
+    "bertscore_recall": {
+      "model1_value": 0.9412841796875,
+      "model2_value": 0.9453527927398682,
+      "difference": -0.004068613052368164,
+      "percent_difference": -0.4303803917029016
+    },
+    "cer": {
+      "model1_value": 0.18693467336683417,
+      "model2_value": 0.19419095477386936,
+      "difference": -0.007256281407035187,
+      "percent_difference": -3.736673222233729
+    },
+    "semantic_wer": {
+      "model1_value": 0.28900444507598877,
+      "model2_value": 0.2808563709259033,
+      "difference": 0.00814807415008545,
+      "percent_difference": 2.901153398523086
+    },
+    "meteor_score": {
+      "model1_value": 0.7010957737389732,
+      "model2_value": 0.7049759956948481,
+      "difference": -0.0038802219558748963,
+      "percent_difference": -0.5504048335788254
+    },
+    "viseme_alignment_score": {
+      "model1_value": 0.8194904762532231,
+      "model2_value": 0.8100104828632407,
+      "difference": 0.0094799933899824,
+      "percent_difference": 1.1703544078185675
+    },
+    "rouge2_score": {
+      "model1_value": 0.6213741099061146,
+      "model2_value": 0.6352890759099181,
+      "difference": -0.013914966003803486,
+      "percent_difference": -2.190336105476585
+    },
+    "semantic_similarity": {
+      "model1_value": 0.7109955549240112,
+      "model2_value": 0.7191436290740967,
+      "difference": -0.00814807415008545,
+      "percent_difference": -1.1330245893405413
+    }
+  },
+  "examples_count": 1321,
+  "model1_json": "checkpoints/error_analysis/lrs3_test_433h/hypo-244018.json",
+  "model2_json": "checkpoints/error_analysis/llama2-7b_lrs3_433h_on_lrs3/hypo-685605.json"
+}

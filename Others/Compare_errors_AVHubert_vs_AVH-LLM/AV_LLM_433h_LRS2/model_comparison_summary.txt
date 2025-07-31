@@ -1,0 +1,29 @@
+=== Model Comparison: Avhubert-LRS2 vs Llama2-Avhubert-LRS2 ===
+
+Performance Metrics Comparison:
+--------------------------------------------------------------------------------
+Metric                         | Avhubert-LRS2   | Llama2-Avhubert-LRS2 | Difference      | % Diff    
+--------------------------------------------------------------------------------
+semantic_similarity            | 0.6369          | 0.6415          | -0.0046         | -0.72    % ↑
+cer                            | 0.2472          | 0.2619          | -0.0147         | -5.61    % ↓
+wer                            | 0.3800          | 0.3835          | -0.0035         | -0.90    % ↓
+bertscore_precision            | 0.9269          | 0.9302          | -0.0033         | -0.36    % ↑
+corpus_bleu_score              | 49.0899         | 51.0767         | -1.9868         | -3.89    % ↑
+rouge2_score                   | 0.5478          | 0.5436          | 0.0042          | 0.78     % ↓
+semantic_wer                   | 0.3631          | 0.3585          | 0.0046          | 1.28     % ↑
+rougeL_score                   | 0.6676          | 0.6595          | 0.0081          | 1.23     % ↓
+meteor_score                   | 0.6247          | 0.6140          | 0.0107          | 1.75     % ↓
+rouge1_score                   | 0.6684          | 0.6605          | 0.0079          | 1.19     % ↓
+word_similarity                | 0.7972          | 0.7829          | 0.0143          | 1.82     % ↓
+viseme_alignment_score         | 0.7782          | 0.7583          | 0.0199          | 2.62     % ↓
+bertscore_recall               | 0.9261          | 0.9274          | -0.0013         | -0.14    % ↑
+bertscore_f1                   | 0.9264          | 0.9287          | -0.0023         | -0.25    % ↑
+phonetic_edit_distance         | 2.3906          | 2.6390          | -0.2484         | -9.41    % ↑
+sentence_bleu_score            | 42.0621         | 42.9827         | -0.9207         | -2.14    % ↑
+--------------------------------------------------------------------------------
+
+Summary:
+- Avhubert-LRS2 performs better on 8 metrics
+- Llama2-Avhubert-LRS2 performs better on 8 metrics
+
+Overall: Avhubert-LRS2 and Llama2-Avhubert-LRS2 perform similarly across metrics.

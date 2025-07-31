@@ -1,0 +1,105 @@
+{
+  "model1_name": "Avhubert-LRS2",
+  "model2_name": "Llama2-Avhubert-LRS2",
+  "metrics_comparison": {
+    "semantic_similarity": {
+      "model1_value": 0.6368955969810486,
+      "model2_value": 0.641487181186676,
+      "difference": -0.004591584205627441,
+      "percent_difference": -0.7157717784996965
+    },
+    "cer": {
+      "model1_value": 0.24722180843140176,
+      "model2_value": 0.2619097273946075,
+      "difference": -0.014687918963205732,
+      "percent_difference": -5.608008190194521
+    },
+    "wer": {
+      "model1_value": 0.38003003003003005,
+      "model2_value": 0.3834834834834835,
+      "difference": -0.0034534534534534367,
+      "percent_difference": -0.9005481597494083
+    },
+    "bertscore_precision": {
+      "model1_value": 0.9269012212753296,
+      "model2_value": 0.9302424788475037,
+      "difference": -0.0033412575721740723,
+      "percent_difference": -0.35918135842534565
+    },
+    "corpus_bleu_score": {
+      "model1_value": 49.08987230592249,
+      "model2_value": 51.07670901698879,
+      "difference": -1.986836711066296,
+      "percent_difference": -3.8899074535233815
+    },
+    "rouge2_score": {
+      "model1_value": 0.5477725189800011,
+      "model2_value": 0.5435521896038165,
+      "difference": 0.004220329376184662,
+      "percent_difference": 0.7764349876431864
+    },
+    "semantic_wer": {
+      "model1_value": 0.3631044030189514,
+      "model2_value": 0.358512818813324,
+      "difference": 0.004591584205627441,
+      "percent_difference": 1.2807308315573114
+    },
+    "rougeL_score": {
+      "model1_value": 0.6675768201068373,
+      "model2_value": 0.6594917249841044,
+      "difference": 0.008085095122732922,
+      "percent_difference": 1.2259585399540525
+    },
+    "meteor_score": {
+      "model1_value": 0.6247100816073097,
+      "model2_value": 0.6139774646844817,
+      "difference": 0.010732616922828009,
+      "percent_difference": 1.7480473698400996
+    },
+    "rouge1_score": {
+      "model1_value": 0.6684178867588922,
+      "model2_value": 0.6605417494210958,
+      "difference": 0.007876137337796463,
+      "percent_difference": 1.1923754016607087
+    },
+    "word_similarity": {
+      "model1_value": 0.7971680469125568,
+      "model2_value": 0.7828969271781947,
+      "difference": 0.014271119734362125,
+      "percent_difference": 1.822860614078497
+    },
+    "viseme_alignment_score": {
+      "model1_value": 0.7781892747732865,
+      "model2_value": 0.7583083464771552,
+      "difference": 0.019880928296131306,
+      "percent_difference": 2.621747260002002
+    },
+    "bertscore_recall": {
+      "model1_value": 0.9261280298233032,
+      "model2_value": 0.9274104833602905,
+      "difference": -0.0012824535369873047,
+      "percent_difference": -0.13828326938256996
+    },
+    "bertscore_f1": {
+      "model1_value": 0.9264299273490906,
+      "model2_value": 0.9287392497062683,
+      "difference": -0.0023093223571777344,
+      "percent_difference": -0.24865131498513732
+    },
+    "phonetic_edit_distance": {
+      "model1_value": 2.390565500134084,
+      "model2_value": 2.638968222043443,
+      "difference": -0.24840272190935897,
+      "percent_difference": -9.412872797574359
+    },
+    "sentence_bleu_score": {
+      "model1_value": 42.062058040650825,
+      "model2_value": 42.98274416980733,
+      "difference": -0.9206861291565076,
+      "percent_difference": -2.141990110075921
+    }
+  },
+  "examples_count": 1243,
+  "model1_json": "checkpoints/error_analysis/lrs2_test_433h/hypo-244018.json",
+  "model2_json": "checkpoints/error_analysis/llama2-7b_433h_lrs2/hypo-685605.json"
+}
