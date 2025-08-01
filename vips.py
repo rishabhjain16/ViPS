@@ -545,45 +545,6 @@ class LipReadingEvaluator:
         """
         # Use the unified alignment function with weighted option for visemes
         return self.calculate_sequence_alignment(seq1, seq2, allow_weighted=True)
-        
-    # ==== LEGACY METHODS (MAINTAINED FOR BACKWARD COMPATIBILITY) ====
-    
-    def calculate_phonetic_distance(self, phoneme1, phoneme2):
-        """
-        Legacy method that calls calculate_phoneme_distance with current weighting.
-        Maintained for backward compatibility.
-        """
-        return self.calculate_phoneme_distance(phoneme1, phoneme2)
-        
-    def calculate_weighted_phonetic_edit_distance(self, phoneme_seq1, phoneme_seq2):
-        """
-        Legacy method that calls calculate_sequence_distance with weighted=True.
-        Maintained for backward compatibility.
-        """
-        _, edit_distance = self.calculate_sequence_distance(phoneme_seq1, phoneme_seq2, use_weights=True)
-        return edit_distance
-        
-    def calculate_phonetic_alignment(self, seq1, seq2):
-        """
-        Legacy method that calls calculate_sequence_distance with weighted=False.
-        Maintained for backward compatibility.
-        """
-        return self.calculate_sequence_distance(seq1, seq2, use_weights=False)
-        
-    def standard_phonetic_distance(self, phoneme1, phoneme2):
-        """
-        Calculate phonetic distance using the standard (non-weighted) approach.
-        This ensures we have a clear distinction between standard and weighted distances.
-        
-        Args:
-            phoneme1: First phoneme
-            phoneme2: Second phoneme
-            
-        Returns:
-            float: Distance value between 0.0 (identical) and 1.0 (maximally different)
-        """
-        # Call the main distance function with use_weights=False
-        return self.calculate_phoneme_distance(phoneme1, phoneme2, use_weights=False)
 
     def text_to_phonemes(self, text):
         """Convert English text to phoneme sequence"""
@@ -655,7 +616,7 @@ class LipReadingEvaluator:
             hyp_phonemes = self.text_to_phonemes(normalized_hypothesis)        
             
             # Calculate phonetic alignment and edit distance
-            alignment, edit_distance = self.calculate_phonetic_alignment(ref_phonemes, hyp_phonemes)
+            alignment, edit_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=False)
             
             # Convert phonemes to visemes using most appropriate mapping
             ref_visemes = [self.map_phoneme_to_viseme(p) for p in ref_phonemes]
@@ -887,44 +848,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
     
     # The calculate_viseme_similarity_matrix function has been removed
     # as part of codebase simplification since only standard viseme score is used now
-    
-    def calculate_phonetic_distance(self, phoneme1, phoneme2):
-        """
-        Override parent method to use weighted phonetic distance calculation.
-        Maintained for backward compatibility.
-        
-        Args:
-            phoneme1: First phoneme
-            phoneme2: Second phoneme
-            
-        Returns:
-            float: Weighted distance value between 0.0 (identical) and 1.0 (maximally different)
-        """
-        # Use the main calculate_phoneme_distance method with current weighting
-        return self.calculate_phoneme_distance(phoneme1, phoneme2)
-    
-    def calculate_weighted_phonetic_edit_distance(self, phoneme_seq1, phoneme_seq2):
-        """
-        Calculate phonetic edit distance between two phoneme sequences using weighted distance.
-        
-        Args:
-            phoneme_seq1: First phoneme sequence
-            phoneme_seq2: Second phoneme sequence
-            
-        Returns:
-            float: Weighted edit distance value
-        """
-        # Define cost function that uses our class's weighted distance calculation
-        def phonetic_weighted_cost(p1, p2):
-            return self.calculate_phoneme_distance(p1, p2, use_weights=True)
-        
-        # Use the unified alignment function with our weighted phonetic distance
-        _, edit_distance = self.calculate_sequence_alignment(
-            phoneme_seq1, phoneme_seq2, 
-            cost_function=phonetic_weighted_cost
-        )
-        
-        return edit_distance
     
     def evaluate_pair(self, reference, hypothesis):
         """
@@ -1615,21 +1538,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             print(f"Error exporting results to CSV: {e}")
             import traceback
             traceback.print_exc()
-
-    def standard_phonetic_distance(self, phoneme1, phoneme2):
-        """
-        Calculate phonetic distance using the standard (non-weighted) approach.
-        This ensures we have a clear distinction between standard and weighted distances.
-        
-        Args:
-            phoneme1: First phoneme
-            phoneme2: Second phoneme
-            
-        Returns:
-            float: Distance value between 0.0 (identical) and 1.0 (maximally different)
-        """
-        # Call the main distance function with use_weights=False
-        return self.calculate_phoneme_distance(phoneme1, phoneme2, use_weights=False)
 
 def main():
     """Main function for demonstrating and comparing different alignment approaches"""
