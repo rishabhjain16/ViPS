@@ -1552,10 +1552,7 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 'hyp_phonemes',
                 'standard_viseme_score',
                 'standard_phoneme_score',
-                'viseme_score',
-                'vips_score',
-                'viseme_score_difference',
-                'vips_score_difference'
+                'vips_score'
             ]
             
             # Add additional metric columns if available
@@ -1595,21 +1592,9 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                     row['standard_viseme_score'] = round(std.get('standard_viseme_score', 0), 4) if 'standard_viseme_score' in std else ''
                     row['standard_phoneme_score'] = round(std.get('standard_phoneme_score', 0), 4) if 'standard_phoneme_score' in std else ''
                     
-                    # Weighted metrics
+                    # Weighted metrics (just ViPS score)
                     wgt = result.get('weighted', {})
-                    row['viseme_score'] = round(wgt.get('viseme_score', 0), 4) if 'viseme_score' in wgt else ''
                     row['vips_score'] = round(wgt.get('vips_score', 0), 4) if 'vips_score' in wgt else ''
-                    
-                    # Calculate score differences
-                    if row['viseme_score'] and row['standard_viseme_score']:
-                        row['viseme_score_difference'] = round(row['viseme_score'] - row['standard_viseme_score'], 4)
-                    else:
-                        row['viseme_score_difference'] = ''
-                        
-                    if row['vips_score'] and row['standard_phoneme_score']:
-                        row['vips_score_difference'] = round(row['vips_score'] - row['standard_phoneme_score'], 4)
-                    else:
-                        row['vips_score_difference'] = ''
                     
                     # Add additional metrics if available
                     if additional_metrics and i < len(additional_metrics) and additional_metrics[i]:
@@ -1646,70 +1631,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         # Call the main distance function with use_weights=False
         return self.calculate_phoneme_distance(phoneme1, phoneme2, use_weights=False)
 
-def save_examples_to_csv(examples, evaluator, filename="phonetic_examples.csv"):
-    """
-    Save the comparison examples to a CSV file with additional analysis columns
-    
-    Args:
-        examples: List of example tuples (reference, hypothesis, type, description)
-        evaluator: LipReadingEvaluator instance to calculate scores
-        filename: Path to save the CSV file
-    """
-    import csv
-    
-    try:
-        with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
-            fieldnames = ['reference', 'hypothesis', 'confusion_type', 'description', 
-                         'substituted_phonemes', 'articulatory_difference',
-                         'standard_viseme_score', 'standard_phoneme_score', 'vips_score',
-                         'viseme_diff', 'vips_diff']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            
-            writer.writeheader()
-            for item in examples:
-                # Unpack values from the example tuple
-                if len(item) >= 4:
-                    ref, hyp, confusion_type, description = item[:4]
-                    
-                    # Add optional fields if available
-                    substituted_phonemes = item[4] if len(item) > 4 else ""
-                    articulatory_difference = item[5] if len(item) > 5 else ""
-                else:
-                    # Backward compatibility for simple (ref, hyp) tuples
-                    ref, hyp = item[:2]
-                    confusion_type = ""
-                    description = ""
-                    substituted_phonemes = ""
-                    articulatory_difference = ""
-                
-                # Calculate scores
-                results = evaluator.compare_standard_and_weighted(ref, hyp)
-                std_viseme = results['standard']['standard_viseme_score']
-                std_phonetic = results['standard']['standard_phoneme_score']
-                vips_score = results['weighted']['vips_score']
-                
-                # Calculate differences
-                vips_diff = vips_score - std_phonetic
-                
-                # Write to CSV
-                writer.writerow({
-                    'reference': ref,
-                    'hypothesis': hyp,
-                    'confusion_type': confusion_type,
-                    'description': description,
-                    'substituted_phonemes': substituted_phonemes,
-                    'articulatory_difference': articulatory_difference,
-                    'standard_viseme_score': f"{std_viseme:.3f}",
-                    'standard_phoneme_score': f"{std_phonetic:.3f}",
-                    'vips_score': f"{vips_score:.3f}",
-                    'viseme_diff': "0.000",  # No longer calculated
-                    'vips_diff': f"{vips_diff:.3f}"
-                })
-                
-        print(f"Saved {len(examples)} examples with scores to {filename}")
-    except Exception as e:
-        print(f"Error saving examples to CSV: {e}")
-
 def main():
     """Main function for demonstrating and comparing different alignment approaches"""
     import argparse
@@ -1721,11 +1642,9 @@ def main():
     parser.add_argument('--max_samples', type=int, default=None, help='Maximum number of samples to process')
     parser.add_argument('--all', action='store_true', help='Calculate all metrics including WER, CER, and others')
     parser.add_argument('--csv', action='store_true', help='Export results to CSV file')
-    parser.add_argument('--save-examples', action='store_true', help='Save examples to CSV file')
     parser.add_argument('--save-text', action='store_true', help='Save examples to readable text file')
     parser.add_argument('--weight-method', type=str, choices=['both', 'entropy', 'visual'], default='both',
                         help='Method to calculate feature weights: both (default), entropy-only, or visual-only')
-    parser.add_argument('--compare-methods', action='store_true', help='Compare results using different weight methods')
     args = parser.parse_args()
     
     # Set up output directory - only create viseme_output if save_dir is not specified
@@ -1744,116 +1663,7 @@ def main():
         weights_path = os.path.join(args.save_dir, f'viseme_weights{method_suffix}.json')
     
     results_path = os.path.join(args.save_dir, f'results{method_suffix}.json')
-    examples_path = os.path.join(args.save_dir, f'phonetic_examples{method_suffix}.csv')
     comparison_text_path = os.path.join(args.save_dir, f'phonetic_comparisons{method_suffix}.txt')
-    
-    if args.compare_methods:
-        # Run analysis with all three weight methods and compare
-        print("\n=== COMPARING DIFFERENT WEIGHT METHODS ===")
-        methods = ['both', 'entropy', 'distinctiveness']
-        method_results = {}
-        example_pairs = []
-        
-        # Load pairs from JSON if provided, or use sample examples
-        if args.json:
-            try:
-                with open(args.json, 'r') as f:
-                    data = json.load(f)
-                
-                # Extract pairs depending on the format
-                if isinstance(data, dict) and 'ref' in data and 'hypo' in data:
-                    pairs = list(zip(data['ref'], data['hypo']))
-                elif isinstance(data, list):
-                    pairs = [(item.get('reference', item.get('ref', '')), 
-                             item.get('hypothesis', item.get('hyp', '')))
-                             for item in data if isinstance(item, dict)]
-                
-                if pairs:
-                    example_pairs = pairs[:20]  # Limit to 20 examples
-            except Exception as e:
-                print(f"Error loading JSON: {e}")
-                example_pairs = []
-        
-        # If no pairs from JSON, use sample examples
-        if not example_pairs:
-            example_pairs = [
-                ("Hello world", "Hello word"),
-                ("Please pass the salt", "Please pass the fault"),
-                ("Bring me a glass of water", "Bring me a glass of vodka"),
-                ("Meet me at five", "Meet me at nine"),
-                ("I enjoy boys playing outside", "I enjoy toys playing outside"),
-            ]
-        
-        # Compare results for each method
-        print(f"\nAnalyzing {len(example_pairs)} example pairs with three different weight methods")
-        
-        for method in methods:
-            print(f"\n--- EVALUATING WITH {method.upper()} WEIGHTS ---")
-            evaluator = WeightedLipReadingEvaluator(weight_method=method)
-            
-            # Save the weights
-            method_suffix = f"_{method}" if method != "both" else ""
-            method_weights_path = os.path.join(args.save_dir, f'viseme_weights{method_suffix}.json')
-            evaluator.save_weights_to_file(method_weights_path)
-            
-            # Calculate scores for all examples
-            scores = []
-            for ref, hyp in example_pairs:
-                result = evaluator.compare_standard_and_weighted(ref, hyp)
-                scores.append({
-                    'reference': ref,
-                    'hypothesis': hyp,
-                    'standard_score': result['standard']['standard_viseme_score'],
-                    'weighted_score': result['weighted']['viseme_score'],
-                    'improvement': result['weighted']['viseme_score'] - result['standard']['standard_viseme_score']
-                })
-            
-            # Calculate average scores
-            avg_standard = sum(s['standard_score'] for s in scores) / len(scores)
-            avg_weighted = sum(s['weighted_score'] for s in scores) / len(scores)
-            avg_improvement = sum(s['improvement'] for s in scores) / len(scores)
-            
-            method_results[method] = {
-                'scores': scores,
-                'avg_standard': avg_standard,
-                'avg_weighted': avg_weighted,
-                'avg_improvement': avg_improvement
-            }
-            
-            print(f"Average standard score: {avg_standard:.3f}")
-            print(f"Average weighted score: {avg_weighted:.3f}")
-            print(f"Average improvement: {avg_improvement:.3f}")
-            
-            # Save detailed results to JSON
-            details_path = os.path.join(args.save_dir, f'method_comparison_{method}.json')
-            with open(details_path, 'w') as f:
-                json.dump({'scores': scores, 'summary': {
-                    'avg_standard': avg_standard,
-                    'avg_weighted': avg_weighted,
-                    'avg_improvement': avg_improvement
-                }}, f, indent=2)
-        
-        # Summarize and compare
-        print("\n=== WEIGHT METHOD COMPARISON SUMMARY ===")
-        print("Method       | Std Score | Weighted Score | Improvement")
-        print("-------------|-----------|---------------|------------")
-        for method in methods:
-            res = method_results[method]
-            print(f"{method:12} | {res['avg_standard']:.3f}    | {res['avg_weighted']:.3f}       | {res['avg_improvement']:.3f}")
-        
-        # Save overall comparison to JSON
-        comparison_path = os.path.join(args.save_dir, 'weight_method_comparison.json')
-        with open(comparison_path, 'w') as f:
-            json.dump({method: {
-                'avg_standard': res['avg_standard'],
-                'avg_weighted': res['avg_weighted'],
-                'avg_improvement': res['avg_improvement']
-            } for method, res in method_results.items()}, f, indent=2)
-        
-        print(f"\nSaved comparison results to {comparison_path}")
-        print("Individual method results saved to method_comparison_*.json files")
-        
-        return
     
     # Create weighted evaluator with the specified weight method
     evaluator = WeightedLipReadingEvaluator(weight_method=args.weight_method)

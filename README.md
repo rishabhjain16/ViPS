@@ -51,7 +51,7 @@ python vips.py --json path/to/data.json --save_dir results_dir
 
 #### 6. Run ablation or method comparison
 ```bash
-python vips.py --json path/to/data.json --compare-methods --save_dir results_dir
+python vips.py --json path/to/data.json --save_dir results_dir
 ```
 Compares different feature weighting methods (entropy, distinctiveness, both).
 
@@ -71,7 +71,6 @@ Saves detailed example-by-example analysis in both text and CSV formats.
 - `--save-examples`: Save example analyses to CSV
 - `--save-text`: Save example analyses to text
 - `--weight-method`: Choose feature weighting method (`both`, `entropy`, `distinctiveness`)
-- `--compare-methods`: Compare results using different weighting methods
 
 ### Output Files
 - `results.json`: Full results for all pairs
