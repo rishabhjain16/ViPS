@@ -1151,30 +1151,22 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         max_viseme_len = max(len(ref_visemes), len(hyp_visemes))
         max_phoneme_len = max(len(ref_phonemes), len(hyp_phonemes))
         
-        if self.use_weighted_distance:
-            # For weighted approach, use phonetically_weighted_viseme_score
-            phonetically_weighted_viseme_score = 1.0 - (edit_distance / max_viseme_len if max_viseme_len > 0 else 0.0)
-            score_key = 'phonetically_weighted_viseme_score'
-            score_value = phonetically_weighted_viseme_score
-        else:
-            # For standard approach, use viseme_score
-            viseme_score = 1.0 - (edit_distance / max_viseme_len if max_viseme_len > 0 else 0.0)
-            score_key = 'viseme_score'
-            score_value = viseme_score
+        # Standard viseme score (always calculated the same way)
+        viseme_score = 1.0 - (edit_distance / max_viseme_len if max_viseme_len > 0 else 0.0)
         
-        phonetic_alignment_score = 1.0 - (phonetic_distance / max_phoneme_len if max_phoneme_len > 0 else 0.0)
+        # ViPS score (weighted or standard phonetic alignment score)
+        vips_score = 1.0 - (phonetic_distance / max_phoneme_len if max_phoneme_len > 0 else 0.0)
         
-        # Return results
+        # Return simplified results
         results = {
             'ref_phonemes': ref_phonemes,
             'hyp_phonemes': hyp_phonemes,
             'ref_visemes': ref_visemes,
             'hyp_visemes': hyp_visemes,
             'phonetic_edit_distance': phonetic_distance,
-            'phonetic_alignment_score': phonetic_alignment_score,
             'viseme_edit_distance': edit_distance,
-            'viseme_alignment': alignment,
-            score_key: score_value
+            'viseme_score': viseme_score,
+            'vips_score': vips_score
         }
         
         return results
@@ -1218,15 +1210,15 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 'hyp_phonemes': standard_results.get('hyp_phonemes', []),
                 'standard': {
                     'phonetic_edit_distance': standard_results.get('phonetic_edit_distance', float('inf')),
-                    'phonetic_alignment_score': standard_results.get('phonetic_alignment_score', 0.0),
+                    'standard_phoneme_score': standard_results.get('vips_score', 0.0),
                     'viseme_edit_distance': standard_results.get('viseme_edit_distance', float('inf')),
-                    'viseme_score': standard_results.get('viseme_score', 0.0),
+                    'standard_viseme_score': standard_results.get('viseme_score', 0.0),
                 },
                 'weighted': {
                     'phonetic_edit_distance': weighted_results.get('phonetic_edit_distance', float('inf')),
-                    'phonetic_alignment_score': weighted_results.get('phonetic_alignment_score', 0.0),
+                    'vips_score': weighted_results.get('vips_score', 0.0),
                     'viseme_edit_distance': weighted_results.get('viseme_edit_distance', float('inf')),
-                    'phonetically_weighted_viseme_score': weighted_results.get('phonetically_weighted_viseme_score', 0.0),
+                    'viseme_score': weighted_results.get('viseme_score', 0.0),
                 }
             }
             
@@ -1245,8 +1237,8 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 'reference': reference,
                 'hypothesis': hypothesis,
                 'error': str(e),
-                'standard': {'viseme_score': 0.0},
-                'weighted': {'phonetically_weighted_viseme_score': 0.0}
+                'standard': {'standard_viseme_score': 0.0, 'standard_phoneme_score': 0.0},
+                'weighted': {'viseme_score': 0.0, 'vips_score': 0.0}
             }
     
     def calculate_additional_metrics(self, example_pairs):
@@ -1653,36 +1645,36 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             summary = {
                 'num_examples': len(all_results),
                 'standard': {
-                    'avg_viseme_score': np.mean([r['standard']['viseme_score'] for r in all_results]),
+                    'avg_standard_viseme_score': np.mean([r['standard']['standard_viseme_score'] for r in all_results]),
                     'avg_phonetic_distance': np.mean([r['standard']['phonetic_edit_distance'] for r in all_results 
                                                     if r['standard']['phonetic_edit_distance'] != float('inf')]),
-                    'avg_phonetic_score': np.mean([r['standard']['phonetic_alignment_score'] for r in all_results]),
+                    'avg_standard_phoneme_score': np.mean([r['standard']['standard_phoneme_score'] for r in all_results]),
                 },
                 'weighted': {
-                    'avg_phonetically_weighted_viseme_score': np.mean([r['weighted']['phonetically_weighted_viseme_score'] for r in all_results]),
+                    'avg_viseme_score': np.mean([r['weighted']['viseme_score'] for r in all_results]),
                     'avg_phonetic_distance': np.mean([r['weighted']['phonetic_edit_distance'] for r in all_results
                                                     if r['weighted']['phonetic_edit_distance'] != float('inf')]),
-                    'avg_phonetic_score': np.mean([r['weighted']['phonetic_alignment_score'] for r in all_results]),
+                    'avg_vips_score': np.mean([r['weighted']['vips_score'] for r in all_results]),
                 }
             }
             
             # Calculate difference statistics
-            viseme_score_diffs = [r['weighted']['phonetically_weighted_viseme_score'] - r['standard']['viseme_score'] 
+            viseme_score_diffs = [r['weighted']['viseme_score'] - r['standard']['standard_viseme_score'] 
                           for r in all_results]
-            phonetic_score_diffs = [r['weighted']['phonetic_alignment_score'] - r['standard']['phonetic_alignment_score'] 
+            vips_score_diffs = [r['weighted']['vips_score'] - r['standard']['standard_phoneme_score'] 
                           for r in all_results]
             
             summary['comparison'] = {
-                'avg_score_difference': np.mean(viseme_score_diffs),
-                'max_score_improvement': max(viseme_score_diffs),
-                'avg_phonetic_score_difference': np.mean(phonetic_score_diffs),
-                'max_phonetic_score_improvement': max(phonetic_score_diffs),
+                'avg_viseme_score_difference': np.mean(viseme_score_diffs),
+                'max_viseme_score_improvement': max(viseme_score_diffs),
+                'avg_vips_score_difference': np.mean(vips_score_diffs),
+                'max_vips_score_improvement': max(vips_score_diffs),
                 'percent_viseme_improved': sum(1 for d in viseme_score_diffs if d > 0) / len(viseme_score_diffs) * 100,
                 'percent_viseme_unchanged': sum(1 for d in viseme_score_diffs if d == 0) / len(viseme_score_diffs) * 100,
                 'percent_viseme_worse': sum(1 for d in viseme_score_diffs if d < 0) / len(viseme_score_diffs) * 100,
-                'percent_phonetic_improved': sum(1 for d in phonetic_score_diffs if d > 0) / len(phonetic_score_diffs) * 100,
-                'percent_phonetic_unchanged': sum(1 for d in phonetic_score_diffs if d == 0) / len(phonetic_score_diffs) * 100,
-                'percent_phonetic_worse': sum(1 for d in phonetic_score_diffs if d < 0) / len(phonetic_score_diffs) * 100,
+                'percent_vips_improved': sum(1 for d in vips_score_diffs if d > 0) / len(vips_score_diffs) * 100,
+                'percent_vips_unchanged': sum(1 for d in vips_score_diffs if d == 0) / len(vips_score_diffs) * 100,
+                'percent_vips_worse': sum(1 for d in vips_score_diffs if d < 0) / len(vips_score_diffs) * 100,
             }
             
             # Add additional metrics if requested
@@ -1700,20 +1692,20 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             print("\n=== ANALYSIS SUMMARY ===")
             print(f"Total examples: {summary['num_examples']}")
             print("\nStandard approach:")
-            print(f"  Average viseme score: {summary['standard']['avg_viseme_score']:.3f}")
-            print(f"  Average phonetic score: {summary['standard']['avg_phonetic_score']:.3f}")
+            print(f"  Average standard viseme score: {summary['standard']['avg_standard_viseme_score']:.3f}")
+            print(f"  Average standard phoneme score: {summary['standard']['avg_standard_phoneme_score']:.3f}")
             print(f"  Average phonetic distance: {summary['standard']['avg_phonetic_distance']:.3f}")
             print("\nWeighted approach:")
-            print(f"  Average phonetically-weighted viseme score: {summary['weighted']['avg_phonetically_weighted_viseme_score']:.3f}")
-            print(f"  Average phonetic score: {summary['weighted']['avg_phonetic_score']:.3f}")
+            print(f"  Average viseme score: {summary['weighted']['avg_viseme_score']:.3f}")
+            print(f"  Average ViPS score: {summary['weighted']['avg_vips_score']:.3f}")
             print(f"  Average phonetic distance: {summary['weighted']['avg_phonetic_distance']:.3f}")
             print("\nComparison:")
-            print(f"  Average score difference: {summary['comparison']['avg_score_difference']:.3f}")
-            print(f"  Maximum score improvement: {summary['comparison']['max_score_improvement']:.3f}")
+            print(f"  Average viseme score difference: {summary['comparison']['avg_viseme_score_difference']:.3f}")
+            print(f"  Maximum viseme score improvement: {summary['comparison']['max_viseme_score_improvement']:.3f}")
             print(f"  Viseme examples improved: {summary['comparison']['percent_viseme_improved']:.1f}%")
-            print(f"  Average phonetic score difference: {summary['comparison']['avg_phonetic_score_difference']:.3f}")
-            print(f"  Maximum phonetic score improvement: {summary['comparison']['max_phonetic_score_improvement']:.3f}")
-            print(f"  Phonetic examples improved: {summary['comparison']['percent_phonetic_improved']:.1f}%")
+            print(f"  Average ViPS score difference: {summary['comparison']['avg_vips_score_difference']:.3f}")
+            print(f"  Maximum ViPS score improvement: {summary['comparison']['max_vips_score_improvement']:.3f}")
+            print(f"  ViPS examples improved: {summary['comparison']['percent_vips_improved']:.1f}%")
             
             # Print additional metrics if requested
             if include_all_metrics and 'additional_metrics' in summary:
@@ -1792,11 +1784,12 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 'hypothesis',
                 'ref_phonemes',
                 'hyp_phonemes',
-                'std_viseme_score',
-                'wgt_phonetically_weighted_viseme_score',
-                'score_difference',
-                'std_phonetic_distance',
-                'wgt_phonetic_distance'
+                'standard_viseme_score',
+                'standard_phoneme_score',
+                'viseme_score',
+                'vips_score',
+                'viseme_score_difference',
+                'vips_score_difference'
             ]
             
             # Add additional metric columns if available
@@ -1833,35 +1826,24 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                     
                     # Standard metrics
                     std = result.get('standard', {})
-                    row['std_viseme_score'] = round(std.get('viseme_score', 0), 4) if 'viseme_score' in std else ''
-                    
-                    # Handle special case for infinity
-                    std_ped = std.get('phonetic_edit_distance', None)
-                    if std_ped == float('inf'):
-                        row['std_phonetic_distance'] = 'inf'
-                    elif std_ped is not None:
-                        row['std_phonetic_distance'] = round(std_ped, 4)
-                    else:
-                        row['std_phonetic_distance'] = ''
+                    row['standard_viseme_score'] = round(std.get('standard_viseme_score', 0), 4) if 'standard_viseme_score' in std else ''
+                    row['standard_phoneme_score'] = round(std.get('standard_phoneme_score', 0), 4) if 'standard_phoneme_score' in std else ''
                     
                     # Weighted metrics
                     wgt = result.get('weighted', {})
-                    row['wgt_phonetically_weighted_viseme_score'] = round(wgt.get('phonetically_weighted_viseme_score', 0), 4) if 'phonetically_weighted_viseme_score' in wgt else ''
+                    row['viseme_score'] = round(wgt.get('viseme_score', 0), 4) if 'viseme_score' in wgt else ''
+                    row['vips_score'] = round(wgt.get('vips_score', 0), 4) if 'vips_score' in wgt else ''
                     
-                    # Handle special case for infinity
-                    wgt_ped = wgt.get('phonetic_edit_distance', None)
-                    if wgt_ped == float('inf'):
-                        row['wgt_phonetic_distance'] = 'inf'
-                    elif wgt_ped is not None:
-                        row['wgt_phonetic_distance'] = round(wgt_ped, 4)
+                    # Calculate score differences
+                    if row['viseme_score'] and row['standard_viseme_score']:
+                        row['viseme_score_difference'] = round(row['viseme_score'] - row['standard_viseme_score'], 4)
                     else:
-                        row['wgt_phonetic_distance'] = ''
-                    
-                    # Calculate score difference
-                    if 'viseme_score' in std and 'phonetically_weighted_viseme_score' in wgt:
-                        row['score_difference'] = round(wgt['phonetically_weighted_viseme_score'] - std['viseme_score'], 4)
+                        row['viseme_score_difference'] = ''
+                        
+                    if row['vips_score'] and row['standard_phoneme_score']:
+                        row['vips_score_difference'] = round(row['vips_score'] - row['standard_phoneme_score'], 4)
                     else:
-                        row['score_difference'] = ''
+                        row['vips_score_difference'] = ''
                     
                     # Add additional metrics if available
                     if additional_metrics and i < len(additional_metrics) and additional_metrics[i]:
@@ -2082,9 +2064,8 @@ def save_examples_to_csv(examples, evaluator, filename="phonetic_examples.csv"):
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             fieldnames = ['reference', 'hypothesis', 'confusion_type', 'description', 
                          'substituted_phonemes', 'articulatory_difference',
-                         'std_viseme_score', 'weighted_viseme_score', 
-                         'std_phonetic_score', 'weighted_phonetic_score',
-                         'viseme_diff', 'phonetic_diff']
+                         'standard_viseme_score', 'standard_phoneme_score', 'vips_score',
+                         'viseme_diff', 'vips_diff']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             
             writer.writeheader()
@@ -2106,14 +2087,12 @@ def save_examples_to_csv(examples, evaluator, filename="phonetic_examples.csv"):
                 
                 # Calculate scores
                 results = evaluator.compare_standard_and_weighted(ref, hyp)
-                std_viseme = results['standard']['viseme_score']
-                weighted_viseme = results['weighted']['phonetically_weighted_viseme_score']
-                std_phonetic = results['standard']['phonetic_alignment_score']
-                weighted_phonetic = results['weighted']['phonetic_alignment_score']
+                std_viseme = results['standard']['standard_viseme_score']
+                std_phonetic = results['standard']['standard_phoneme_score']
+                vips_score = results['weighted']['vips_score']
                 
                 # Calculate differences
-                viseme_diff = weighted_viseme - std_viseme
-                phonetic_diff = weighted_phonetic - std_phonetic
+                vips_diff = vips_score - std_phonetic
                 
                 # Write to CSV
                 writer.writerow({
@@ -2123,12 +2102,11 @@ def save_examples_to_csv(examples, evaluator, filename="phonetic_examples.csv"):
                     'description': description,
                     'substituted_phonemes': substituted_phonemes,
                     'articulatory_difference': articulatory_difference,
-                    'std_viseme_score': f"{std_viseme:.3f}",
-                    'weighted_viseme_score': f"{weighted_viseme:.3f}",
-                    'std_phonetic_score': f"{std_phonetic:.3f}",
-                    'weighted_phonetic_score': f"{weighted_phonetic:.3f}",
-                    'viseme_diff': f"{viseme_diff:.3f}",
-                    'phonetic_diff': f"{phonetic_diff:.3f}"
+                    'standard_viseme_score': f"{std_viseme:.3f}",
+                    'standard_phoneme_score': f"{std_phonetic:.3f}",
+                    'vips_score': f"{vips_score:.3f}",
+                    'viseme_diff': "0.000",  # No longer calculated
+                    'vips_diff': f"{vips_diff:.3f}"
                 })
                 
         print(f"Saved {len(examples)} examples with scores to {filename}")
@@ -2190,14 +2168,14 @@ def save_examples_to_text(examples, evaluator, filename="phonetic_comparisons.tx
                     
                     # Calculate scores
                     results = evaluator.compare_standard_and_weighted(ref, hyp)
-                    std_viseme = results['standard']['viseme_score']
-                    weighted_viseme = results['weighted']['phonetically_weighted_viseme_score']
-                    std_phonetic = results['standard']['phonetic_alignment_score']
-                    weighted_phonetic = results['weighted']['phonetic_alignment_score']
+                    std_viseme = results['standard']['standard_viseme_score']
+                    weighted_viseme = results['weighted']['viseme_score']
+                    std_phonetic = results['standard']['standard_phoneme_score']
+                    weighted_phonetic = results['weighted']['vips_score']
                     
                     # Calculate differences
                     viseme_diff = weighted_viseme - std_viseme
-                    phonetic_diff = weighted_phonetic - std_phonetic
+                    vips_diff = weighted_phonetic - std_phonetic
                     
                     # Generate a phoneme transcription
                     ref_phonemes = ' '.join(evaluator.text_to_phonemes(ref))
@@ -2220,10 +2198,10 @@ def save_examples_to_text(examples, evaluator, filename="phonetic_comparisons.tx
                     f.write(f"{'Metric':<25} {'Standard':<10} {'Weighted':<10} {'Difference':<12} {'Assessment'}\n")
                     f.write(f"{'-'*25} {'-'*10} {'-'*10} {'-'*12} {'-'*10}\n")
                     f.write(f"{'Viseme Score':<25} {std_viseme:<10.3f} {weighted_viseme:<10.3f} {viseme_diff:+<12.3f} {'better' if viseme_diff > 0.001 else 'worse' if viseme_diff < -0.001 else 'same'}\n")
-                    f.write(f"{'Phonetic Score':<25} {std_phonetic:<10.3f} {weighted_phonetic:<10.3f} {phonetic_diff:+<12.3f} {'better' if phonetic_diff > 0.001 else 'worse' if phonetic_diff < -0.001 else 'same'}\n")
+                    f.write(f"{'ViPS Score':<25} {std_phonetic:<10.3f} {weighted_phonetic:<10.3f} {vips_diff:+<12.3f} {'better' if vips_diff > 0.001 else 'worse' if vips_diff < -0.001 else 'same'}\n")
                     
                     # Add a brief interpretation if there's a significant difference
-                    if abs(viseme_diff) > 0.05 or abs(phonetic_diff) > 0.05:
+                    if abs(viseme_diff) > 0.05 or abs(vips_diff) > 0.05:
                         if viseme_diff > 0.05:
                             f.write("\nAnalysis: The weighted approach significantly improves viseme scoring ")
                             f.write("by recognizing shared phonetic features that the standard approach misses.\n")
@@ -2268,8 +2246,8 @@ def save_examples_to_text(examples, evaluator, filename="phonetic_comparisons.tx
                 
                 # Get scores
                 results = evaluator.compare_standard_and_weighted(ref, hyp)
-                viseme_diff = results['weighted']['phonetically_weighted_viseme_score'] - results['standard']['viseme_score']
-                phonetic_diff = results['weighted']['phonetic_alignment_score'] - results['standard']['phonetic_alignment_score']
+                viseme_diff = results['weighted']['viseme_score'] - results['standard']['standard_viseme_score']
+                phonetic_diff = results['weighted']['vips_score'] - results['standard']['standard_phoneme_score']
                 
                 # Collect diffs for later analysis
                 viseme_diffs.append(viseme_diff)
@@ -2582,7 +2560,6 @@ def main():
     parser.add_argument('--weights', type=str, help='Path to save computed weights (will not load from this file)')
     parser.add_argument('--save_dir', type=str, default='viseme_output', help='Directory to save all outputs (results, plots, weights)')
     parser.add_argument('--max_samples', type=int, default=None, help='Maximum number of samples to process')
-    parser.add_argument('--compare', action='store_true', help='Run comparison examples')
     parser.add_argument('-all', action='store_true', help='Calculate all metrics including WER, CER, and others')
     parser.add_argument('--csv', action='store_true', help='Export results to CSV file')
     parser.add_argument('--save-examples', action='store_true', help='Save examples to CSV file')
@@ -2663,9 +2640,9 @@ def main():
                 scores.append({
                     'reference': ref,
                     'hypothesis': hyp,
-                    'standard_score': result['standard']['viseme_score'],
-                    'weighted_score': result['weighted']['phonetically_weighted_viseme_score'],
-                    'improvement': result['weighted']['phonetically_weighted_viseme_score'] - result['standard']['viseme_score']
+                    'standard_score': result['standard']['standard_viseme_score'],
+                    'weighted_score': result['weighted']['viseme_score'],
+                    'improvement': result['weighted']['viseme_score'] - result['standard']['standard_viseme_score']
                 })
             
             # Calculate average scores
@@ -2759,215 +2736,6 @@ def main():
     else:
         print(f"No feature weights available to save. Type: {type(evaluator.feature_weights)}")
         print(f"Feature weights content: {evaluator.feature_weights}")
-    
-    # Run comparison examples if requested
-    if args.compare:
-        # Define examples with detailed categorization
-        # Format: (reference, hypothesis, confusion_type, description, phoneme_substitutions, articulatory_difference)
-        example_pairs = [
-            # Basic examples
-            ("Hello world", "Hello word", "deletion", "Final consonant deletion", "d → ∅", "Alveolar stop omitted"),
-            ("Please pass the salt", "jackson team la la", "unrelated_words", "Completely different words", "Multiple", "N/A"),
-            ("Pink", "PinkOne", "insertion", "Simple suffix addition", "∅ → w ʌ n", "Addition of unstressed syllable"),
-            ("Pink", "Pink Two", "insertion", "Simple suffix with space", "∅ → t u", "Addition of separate word"),
-            
-            # Place of articulation confusions
-            ("pat", "bat", "place_voicing", "Initial bilabial stop voicing", "p → b", "Voiceless to voiced"),
-            ("time", "dime", "place_voicing", "Initial alveolar stop voicing", "t → d", "Voiceless to voiced"),
-            ("cap", "cab", "place_voicing", "Final bilabial stop voicing", "p → b", "Voiceless to voiced"),
-            ("Kate", "gate", "place_voicing", "Initial velar stop voicing", "k → g", "Voiceless to voiced"),
-            ("tab", "tap", "place_voicing", "Final bilabial stop voicing", "b → p", "Voiced to voiceless"),
-            ("dog", "dock", "place_voicing", "Final velar stop voicing", "g → k", "Voiced to voiceless"),
-            
-            # Manner of articulation confusions
-            ("fan", "van", "manner_voicing", "Initial labiodental fricative voicing", "f → v", "Voiceless to voiced"),
-            ("safe", "save", "manner_voicing", "Final labiodental fricative voicing", "f → v", "Voiceless to voiced"),
-            ("thin", "sin", "manner_place", "Dental vs alveolar fricative", "θ → s", "Change in place of articulation"),
-            ("zoo", "sue", "manner_voicing", "Initial alveolar fricative voicing", "z → s", "Voiced to voiceless"),
-            ("ship", "chip", "manner_change", "Fricative vs affricate", "ʃ → tʃ", "Addition of stop component"),
-            ("wash", "watch", "manner_change", "Fricative vs affricate", "ʃ → tʃ", "Addition of stop component"),
-            ("measure", "feature", "manner_place", "Voiced postalveolar fricative vs voiceless labiodental", "ʒ → f", "Major place change"),
-            
-            # Front-back vowel confusions (harder to distinguish visually)
-            ("beat", "boot", "vowel_frontback", "High front vs high back vowel", "i → u", "Front to back"),
-            ("meet", "mitt", "vowel_tenseness", "Tense vs lax high front vowel", "i → ɪ", "Tense to lax"),
-            ("bat", "but", "vowel_height", "Low front vs mid-central vowel", "æ → ʌ", "Height change"),
-            ("caught", "cot", "vowel_merger", "Low back vowels (merged in many dialects)", "ɔ → ɑ", "Minimal in merged dialects"),
-            ("hat", "hot", "vowel_frontback", "Low front vs low back vowel", "æ → ɑ", "Front to back"),
-            ("fool", "full", "vowel_tenseness", "Tense vs lax high back vowel", "u → ʊ", "Tense to lax"),
-            
-            # Nasal confusions (often difficult in lip reading)
-            ("map", "nap", "nasal_place", "Initial bilabial vs alveolar nasal", "m → n", "Bilabial to alveolar"),
-            ("calm", "con", "nasal_place", "Final bilabial vs alveolar nasal", "m → n", "Bilabial to alveolar"),
-            ("seem", "seen", "nasal_place", "Final bilabial vs alveolar nasal", "m → n", "Bilabial to alveolar"),
-            ("rang", "ram", "nasal_place", "Final velar vs bilabial nasal", "ŋ → m", "Velar to bilabial"),
-            ("name", "mame", "nasal_place", "Initial alveolar vs bilabial nasal", "n → m", "Alveolar to bilabial"),
-            ("king", "kin", "nasal_place", "Final velar vs alveolar nasal", "ŋ → n", "Velar to alveolar"),
-            
-            # Liquid and glide confusions
-            ("red", "led", "liquid", "Initial r/l confusion", "r → l", "Rhotic to lateral"),
-            ("rate", "wait", "liquid_glide", "Initial rhotic vs labial-velar glide", "r → w", "Rhotic to labial-velar"),
-            ("light", "white", "liquid_glide", "Initial lateral vs labial-velar glide", "l → w", "Lateral to labial-velar"),
-            ("yet", "wet", "glide", "Initial palatal vs labial-velar glide", "j → w", "Palatal to labial-velar"),
-            ("crown", "clown", "liquid_cluster", "Liquid consonant cluster confusion", "r → l", "Rhotic to lateral in cluster"),
-            ("pray", "play", "liquid_cluster", "Liquid consonant cluster confusion", "r → l", "Rhotic to lateral in cluster"),
-            
-            # Visual confusions (visemes that look similar)
-            ("time", "fine", "visual_confusion", "Initial consonants with similar appearance", "t → f", "Different articulators, similar appearance"),
-            ("per", "bear", "visual_confusion", "Initial consonants with similar appearance", "p → b", "Same articulator, different voicing"),
-            ("mime", "nine", "visual_confusion", "Initial consonants with similar appearance", "m → n", "Both nasals, visually similar"),
-            ("vat", "bat", "visual_confusion", "Initial consonants with similar appearance", "v → b", "Both involve lips"),
-            ("pile", "file", "visual_confusion", "Initial consonants with similar appearance", "p → f", "Both involve lips"),
-            ("might", "night", "visual_confusion", "Initial nasals confusion", "m → n", "Bilabial vs alveolar nasal"),
-            
-            # Longer phrases with specific confusions
-            ("the fat cat sat", "the vat cat sat", "context_fricative", "Fricative voicing in phrase context", "f → v", "Voiceless to voiced"),
-            ("please pick the pen", "please pick the ben", "context_stop", "Stop voicing in phrase context", "p → b", "Voiceless to voiced"),
-            ("mail it tomorrow", "nail it tomorrow", "context_nasal", "Nasal place in phrase context", "m → n", "Bilabial to alveolar"),
-            ("I really like rice", "I welly like wice", "context_liquid", "Liquid-glide substitution", "r → w", "Rhotic to labial-velar"),
-            ("four red roses", "four wed woses", "context_multiple", "Multiple r/w substitutions", "r → w", "Rhotic to labial-velar"),
-            ("She told Sam to stop", "She told Sam to top", "context_cluster", "Consonant cluster reduction", "st → t", "Cluster reduction"),
-            
-            # Sibilant confusions
-            ("sip", "ship", "sibilant", "Alveolar vs postalveolar sibilant", "s → ʃ", "Alveolar to postalveolar"),
-            ("miss", "mesh", "sibilant", "Final alveolar vs postalveolar sibilant", "s → ʃ", "Alveolar to postalveolar"),
-            ("chew", "jew", "sibilant_affricate", "Voiceless vs voiced postalveolar affricate", "tʃ → dʒ", "Voiceless to voiced"),
-            ("watch", "wash", "affricate_fricative", "Affricate to fricative simplification", "tʃ → ʃ", "Loss of stop component"),
-            ("vision", "mission", "sibilant_voicing", "Voiced vs voiceless postalveolar fricative", "ʒ → ʃ", "Voiced to voiceless"),
-            ("pleasure", "pressure", "sibilant_voicing", "Voiced vs voiceless postalveolar fricative", "ʒ → ʃ", "Voiced to voiceless"),
-            
-            # Phonetic reductions common in casual speech
-            ("want to go", "wanna go", "reduction", "Function word reduction", "want to → wanna", "Assimilation and vowel reduction"),
-            ("going to leave", "gonna leave", "reduction", "Common contraction", "going to → gonna", "Nasal assimilation"),
-            ("did you eat yet", "jeet yet", "reduction", "Connected speech processes", "did you eat → jeet", "Palatalization and syllable loss"),
-            ("what are you doing", "whatcha doing", "reduction", "Palatalization in casual speech", "what are you → whatcha", "Palatalization and vowel reduction"),
-            ("I don't know", "I dunno", "reduction", "Common phrase reduction", "don't know → dunno", "Nasal assimilation and vowel reduction"),
-            ("kind of nice", "kinda nice", "reduction", "Common phrase reduction", "kind of → kinda", "Vowel reduction"),
-            
-            # Stop vs fricative confusions
-            ("but", "fut", "stop_fricative", "Initial stop to fricative", "b → f", "Stop to fricative"),
-            ("vote", "boat", "fricative_stop", "Initial fricative to stop", "v → b", "Fricative to stop"),
-            ("that", "dat", "dental_alveolar", "Dental fricative to alveolar stop", "ð → d", "Fricative to stop"),
-            ("think", "tink", "dental_alveolar", "Voiceless dental fricative to alveolar stop", "θ → t", "Fricative to stop"),
-            ("breathe", "breed", "final_consonant", "Final dental fricative to alveolar stop", "ð → d", "Fricative to stop"),
-            
-            # Vowel insertion and deletion
-            ("sport", "support", "vowel_insertion", "Vowel insertion before /s/ clusters", "∅ → ə", "Schwa insertion"),
-            ("police", "plice", "vowel_deletion", "Unstressed vowel deletion", "ə → ∅", "Vowel deletion"),
-            ("chocolate", "choclate", "vowel_deletion", "Medial vowel deletion", "o → ∅", "Vowel deletion"),
-            ("family", "famly", "vowel_deletion", "Unstressed vowel deletion", "i → ∅", "Vowel deletion"),
-            ("temperature", "temprature", "vowel_deletion", "Unstressed vowel deletion", "ə → ∅", "Vowel deletion"),
-            
-            # Common L2 confusions
-            ("thin", "tin", "l2_dental", "L2 dental fricative substitution", "θ → t", "Fricative to stop"),
-            ("this", "dis", "l2_dental", "L2 dental fricative substitution", "ð → d", "Fricative to stop"),
-            ("very", "berry", "l2_labiodental", "L2 labiodental fricative substitution", "v → b", "Fricative to stop"),
-            ("right", "light", "l2_liquid", "L2 liquid substitution", "r → l", "Rhotic to lateral"),
-            ("yellow", "jellow", "l2_glide", "L2 glide substitution", "j → dʒ", "Glide to affricate"),
-            
-            # Stress-based confusions
-            ("record (noun)", "record (verb)", "stress_shift", "Stress pattern shift", "REcord → reCORD", "Stress shift"),
-            ("object (noun)", "object (verb)", "stress_shift", "Stress pattern shift", "OBject → obJECT", "Stress shift"),
-            ("permit (noun)", "permit (verb)", "stress_shift", "Stress pattern shift", "PERmit → perMIT", "Stress shift"),
-            
-            # Consonant cluster simplifications
-            ("asked", "ast", "cluster_reduction", "Medial consonant cluster reduction", "skt → st", "Loss of stop"),
-            ("texts", "tex", "cluster_reduction", "Final consonant cluster reduction", "ksts → ks", "Loss of final consonants"),
-            ("fifths", "fifs", "cluster_reduction", "Complex cluster reduction", "fθs → fs", "Loss of dental fricative"),
-            ("strengths", "strengs", "cluster_reduction", "Complex cluster reduction", "ŋθs → ŋs", "Loss of dental fricative"),
-            ("twelfths", "twelfs", "cluster_reduction", "Complex cluster reduction", "lfθs → lfs", "Loss of dental fricative"),
-            
-            # Additional examples relating to speech disorders and clinical phonetics
-            ("spin", "pin", "cluster_deletion", "Initial /s/ deletion", "s → ∅", "Common developmental pattern"),
-            ("hospital", "hopsital", "metathesis", "Consonant metathesis", "sp → ps", "Position exchange of consonants"),
-            ("animal", "aminal", "metathesis", "Consonant metathesis", "n...m → m...n", "Nasal consonant reordering"),
-            ("specific", "pacific", "metathesis", "Consonant metathesis", "sp → ps", "Common speech error"),
-            
-            # Minimal pairs commonly confused in lip reading
-            ("pat", "mat", "bilabial_confusion", "Bilabial consonant confusion", "p → m", "Stop to nasal at same place"),
-            ("bat", "mat", "bilabial_confusion", "Bilabial consonant confusion", "b → m", "Voiced stop to nasal"),
-            ("pan", "ban", "minimal_voicing", "Minimal voicing contrast", "p → b", "Voiceless to voiced bilabial"),
-            ("tie", "die", "minimal_voicing", "Minimal voicing contrast", "t → d", "Voiceless to voiced alveolar"),
-            ("coat", "goat", "minimal_voicing", "Minimal voicing contrast", "k → g", "Voiceless to voiced velar"),
-            
-            # Ambiguous lip movements
-            ("suit", "shoot", "lip_ambiguity", "Ambiguous lip position", "s → ʃ", "Alveolar to post-alveolar"),
-            ("soon", "moon", "lip_ambiguity", "Ambiguous lip position", "s → m", "Alveolar fricative to bilabial nasal"),
-            ("feet", "sweet", "lip_ambiguity", "Ambiguous lip position", "f → sw", "Labiodental to complex onset"),
-            ("paper", "maker", "lip_ambiguity", "Ambiguous lip position", "p → m", "Bilabial stop to nasal"),
-            
-            # Lip reading challenges involving rounded vowels
-            ("heed", "who'd", "lip_rounding", "Lip rounding contrast", "i → u", "Unrounded to rounded high vowel"),
-            ("heat", "hoot", "lip_rounding", "Lip rounding contrast", "i → u", "Unrounded to rounded high vowel"),
-            ("hit", "hut", "lip_aperture", "Lip aperture difference", "ɪ → ʌ", "High to mid-low vowel"),
-            ("bit", "but", "lip_aperture", "Lip aperture difference", "ɪ → ʌ", "High to mid-low vowel"),
-            
-            # Examples from actual lip reading errors
-            ("I know", "hello", "real_error", "Common lip reading error", "aɪ n → h l", "Greeting confusion"),
-            ("thank you", "love you", "real_error", "Common lip reading error", "θ → l", "Dental fricative to lateral"),
-            ("I understand", "nine o'clock", "real_error", "Common lip reading error", "Multiple", "Phrase-level confusion"),
-            ("maybe", "baby", "real_error", "Common lip reading error", "m → b", "Nasal to stop confusion"),
-            
-            # Confusions with differing syllable structure
-            ("play", "delay", "syllable_structure", "Syllable structure change", "pl → dəl", "Cluster simplification"),
-            ("street", "sweet", "syllable_structure", "Syllable structure change", "str → sw", "Cluster reduction"),
-            ("through", "true", "syllable_structure", "Syllable structure change", "θr → tr", "Dental fricative loss"),
-            ("strength", "strong", "syllable_structure", "Syllable structure change", "strɛŋθ → strɔŋ", "Coda simplification"),
-            
-            # Regional accent variation examples
-            ("butter", "budder", "flapping", "Alveolar flapping in American English", "t → ɾ", "Intervocalic flapping"),
-            ("water", "wader", "flapping", "Alveolar flapping in American English", "t → ɾ", "Intervocalic flapping"),
-            ("bottle", "bo'le", "glottal_replacement", "Glottal stop replacement in British English", "t → ʔ", "T-glottalization"),
-            ("better", "be'er", "glottal_replacement", "Glottal stop replacement in British English", "t → ʔ", "T-glottalization"),
-            
-            # Language specific confusions
-            ("thing", "sing", "l1_interference", "L1 interference (Chinese speakers)", "θ → s", "Dental to alveolar fricative"),
-            ("they", "day", "l1_interference", "L1 interference (Chinese speakers)", "ð → d", "Dental fricative to stop"),
-            ("rice", "lice", "l1_interference", "L1 interference (Japanese speakers)", "r → l", "Liquid substitution"),
-            ("very", "berry", "l1_interference", "L1 interference (Spanish speakers)", "v → b", "Labiodental to bilabial"),
-            
-            # Prosodic effects on phonetic realization
-            ("because", "cuz", "casual_speech", "Casual speech reduction", "bɪkɔz → kʌz", "Function word reduction"),
-            ("probably", "prolly", "casual_speech", "Casual speech reduction", "prɑbəbli → prɑli", "Medial syllable deletion"),
-            ("naturally", "nacherly", "casual_speech", "Casual speech reduction", "nætʃərəli → nætʃərli", "Vowel reduction"),
-            ("suppose to", "sposeta", "casual_speech", "Casual speech contraction", "səpoz tu → spozətə", "Function word merging"),
-            
-            # Audiological confusions (relevant for multimodal models)
-            ("fin", "thin", "audiological", "Audiological confusion", "f → θ", "Labiodental to dental fricative"),
-            ("ship", "sip", "audiological", "Audiological confusion", "ʃ → s", "Postalveolar to alveolar fricative"),
-            ("mash", "math", "audiological", "Audiological confusion", "ʃ → θ", "Postalveolar to dental fricative"),
-            ("bath", "bass", "audiological", "Audiological confusion", "θ → s", "Dental to alveolar fricative"),
-            
-            # Examples testing boundary effects
-            ("nice house", "nice owl", "resyllabification", "Cross-word resyllabification", "s.h → s.aʊ", "Boundary shift"),
-            ("an aim", "a name", "resyllabification", "Cross-word resyllabification", "ən.eɪm → ə.neɪm", "Boundary shift"),
-            ("ice cream", "I scream", "resyllabification", "Cross-word resyllabification", "aɪs.krim → aɪ.skrim", "Boundary shift"),
-            ("that stuff", "that's tough", "resyllabification", "Cross-word resyllabification", "ðæt.stʌf → ðæts.tʌf", "Boundary shift")
-        ]
-        
-        print(f"\n=== Comparing Standard vs. Phonetically-Weighted Viseme Scores (Method: {args.weight_method}) ===\n")
-        
-        # Save examples to CSV if requested
-        if args.save_examples:
-            save_examples_to_csv(example_pairs, evaluator, examples_path)
-        
-        # Save examples to text file if requested
-        if args.save_text:
-            save_examples_to_text(example_pairs, evaluator, comparison_text_path)
-        
-        for example in example_pairs:
-            ref, hyp = example[0], example[1]
-            print(f"\nReference: '{ref}'")
-            print(f"Hypothesis: '{hyp}'")
-            
-            # Evaluate with both approaches
-            results = evaluator.compare_standard_and_weighted(ref, hyp)
-            
-            # Print results
-            print(f"Standard viseme score: {results['standard']['viseme_score']:.3f}")
-            print(f"Phonetically-weighted viseme score: {results['weighted']['phonetically_weighted_viseme_score']:.3f}")
-            print(f"Standard phonetic score: {results['standard']['phonetic_alignment_score']:.3f}")
-            print(f"Weighted phonetic score: {results['weighted']['phonetic_alignment_score']:.3f}")
     
     # Process JSON file if provided
     if args.json:

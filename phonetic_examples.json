@@ -1,0 +1,1022 @@
+{
+  "description": "Phonetic confusion examples for testing viseme scoring approaches",
+  "format": "Each example contains: reference, hypothesis, confusion_type, description, phoneme_substitutions, articulatory_difference",
+  "examples": [
+    {
+      "reference": "Hello world",
+      "hypothesis": "Hello word",
+      "confusion_type": "deletion",
+      "description": "Final consonant deletion",
+      "phoneme_substitutions": "d → ∅",
+      "articulatory_difference": "Alveolar stop omitted"
+    },
+    {
+      "reference": "Please pass the salt",
+      "hypothesis": "jackson team la la",
+      "confusion_type": "unrelated_words",
+      "description": "Completely different words",
+      "phoneme_substitutions": "Multiple",
+      "articulatory_difference": "N/A"
+    },
+    {
+      "reference": "Pink",
+      "hypothesis": "PinkOne",
+      "confusion_type": "insertion",
+      "description": "Simple suffix addition",
+      "phoneme_substitutions": "∅ → w ʌ n",
+      "articulatory_difference": "Addition of unstressed syllable"
+    },
+    {
+      "reference": "Pink",
+      "hypothesis": "Pink Two",
+      "confusion_type": "insertion",
+      "description": "Simple suffix with space",
+      "phoneme_substitutions": "∅ → t u",
+      "articulatory_difference": "Addition of separate word"
+    },
+    {
+      "reference": "pat",
+      "hypothesis": "bat",
+      "confusion_type": "place_voicing",
+      "description": "Initial bilabial stop voicing",
+      "phoneme_substitutions": "p → b",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "time",
+      "hypothesis": "dime",
+      "confusion_type": "place_voicing",
+      "description": "Initial alveolar stop voicing",
+      "phoneme_substitutions": "t → d",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "cap",
+      "hypothesis": "cab",
+      "confusion_type": "place_voicing",
+      "description": "Final bilabial stop voicing",
+      "phoneme_substitutions": "p → b",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "Kate",
+      "hypothesis": "gate",
+      "confusion_type": "place_voicing",
+      "description": "Initial velar stop voicing",
+      "phoneme_substitutions": "k → g",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "tab",
+      "hypothesis": "tap",
+      "confusion_type": "place_voicing",
+      "description": "Final bilabial stop voicing",
+      "phoneme_substitutions": "b → p",
+      "articulatory_difference": "Voiced to voiceless"
+    },
+    {
+      "reference": "dog",
+      "hypothesis": "dock",
+      "confusion_type": "place_voicing",
+      "description": "Final velar stop voicing",
+      "phoneme_substitutions": "g → k",
+      "articulatory_difference": "Voiced to voiceless"
+    },
+    {
+      "reference": "fan",
+      "hypothesis": "van",
+      "confusion_type": "manner_voicing",
+      "description": "Initial labiodental fricative voicing",
+      "phoneme_substitutions": "f → v",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "safe",
+      "hypothesis": "save",
+      "confusion_type": "manner_voicing",
+      "description": "Final labiodental fricative voicing",
+      "phoneme_substitutions": "f → v",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "thin",
+      "hypothesis": "sin",
+      "confusion_type": "manner_place",
+      "description": "Dental vs alveolar fricative",
+      "phoneme_substitutions": "θ → s",
+      "articulatory_difference": "Change in place of articulation"
+    },
+    {
+      "reference": "zoo",
+      "hypothesis": "sue",
+      "confusion_type": "manner_voicing",
+      "description": "Initial alveolar fricative voicing",
+      "phoneme_substitutions": "z → s",
+      "articulatory_difference": "Voiced to voiceless"
+    },
+    {
+      "reference": "ship",
+      "hypothesis": "chip",
+      "confusion_type": "manner_change",
+      "description": "Fricative vs affricate",
+      "phoneme_substitutions": "ʃ → tʃ",
+      "articulatory_difference": "Addition of stop component"
+    },
+    {
+      "reference": "wash",
+      "hypothesis": "watch",
+      "confusion_type": "manner_change",
+      "description": "Fricative vs affricate",
+      "phoneme_substitutions": "ʃ → tʃ",
+      "articulatory_difference": "Addition of stop component"
+    },
+    {
+      "reference": "measure",
+      "hypothesis": "feature",
+      "confusion_type": "manner_place",
+      "description": "Voiced postalveolar fricative vs voiceless labiodental",
+      "phoneme_substitutions": "ʒ → f",
+      "articulatory_difference": "Major place change"
+    },
+    {
+      "reference": "beat",
+      "hypothesis": "boot",
+      "confusion_type": "vowel_frontback",
+      "description": "High front vs high back vowel",
+      "phoneme_substitutions": "i → u",
+      "articulatory_difference": "Front to back"
+    },
+    {
+      "reference": "meet",
+      "hypothesis": "mitt",
+      "confusion_type": "vowel_tenseness",
+      "description": "Tense vs lax high front vowel",
+      "phoneme_substitutions": "i → ɪ",
+      "articulatory_difference": "Tense to lax"
+    },
+    {
+      "reference": "bat",
+      "hypothesis": "but",
+      "confusion_type": "vowel_height",
+      "description": "Low front vs mid-central vowel",
+      "phoneme_substitutions": "æ → ʌ",
+      "articulatory_difference": "Height change"
+    },
+    {
+      "reference": "caught",
+      "hypothesis": "cot",
+      "confusion_type": "vowel_merger",
+      "description": "Low back vowels (merged in many dialects)",
+      "phoneme_substitutions": "ɔ → ɑ",
+      "articulatory_difference": "Minimal in merged dialects"
+    },
+    {
+      "reference": "hat",
+      "hypothesis": "hot",
+      "confusion_type": "vowel_frontback",
+      "description": "Low front vs low back vowel",
+      "phoneme_substitutions": "æ → ɑ",
+      "articulatory_difference": "Front to back"
+    },
+    {
+      "reference": "fool",
+      "hypothesis": "full",
+      "confusion_type": "vowel_tenseness",
+      "description": "Tense vs lax high back vowel",
+      "phoneme_substitutions": "u → ʊ",
+      "articulatory_difference": "Tense to lax"
+    },
+    {
+      "reference": "map",
+      "hypothesis": "nap",
+      "confusion_type": "nasal_place",
+      "description": "Initial bilabial vs alveolar nasal",
+      "phoneme_substitutions": "m → n",
+      "articulatory_difference": "Bilabial to alveolar"
+    },
+    {
+      "reference": "calm",
+      "hypothesis": "con",
+      "confusion_type": "nasal_place",
+      "description": "Final bilabial vs alveolar nasal",
+      "phoneme_substitutions": "m → n",
+      "articulatory_difference": "Bilabial to alveolar"
+    },
+    {
+      "reference": "seem",
+      "hypothesis": "seen",
+      "confusion_type": "nasal_place",
+      "description": "Final bilabial vs alveolar nasal",
+      "phoneme_substitutions": "m → n",
+      "articulatory_difference": "Bilabial to alveolar"
+    },
+    {
+      "reference": "rang",
+      "hypothesis": "ram",
+      "confusion_type": "nasal_place",
+      "description": "Final velar vs bilabial nasal",
+      "phoneme_substitutions": "ŋ → m",
+      "articulatory_difference": "Velar to bilabial"
+    },
+    {
+      "reference": "name",
+      "hypothesis": "mame",
+      "confusion_type": "nasal_place",
+      "description": "Initial alveolar vs bilabial nasal",
+      "phoneme_substitutions": "n → m",
+      "articulatory_difference": "Alveolar to bilabial"
+    },
+    {
+      "reference": "king",
+      "hypothesis": "kin",
+      "confusion_type": "nasal_place",
+      "description": "Final velar vs alveolar nasal",
+      "phoneme_substitutions": "ŋ → n",
+      "articulatory_difference": "Velar to alveolar"
+    },
+    {
+      "reference": "red",
+      "hypothesis": "led",
+      "confusion_type": "liquid",
+      "description": "Initial r/l confusion",
+      "phoneme_substitutions": "r → l",
+      "articulatory_difference": "Rhotic to lateral"
+    },
+    {
+      "reference": "rate",
+      "hypothesis": "wait",
+      "confusion_type": "liquid_glide",
+      "description": "Initial rhotic vs labial-velar glide",
+      "phoneme_substitutions": "r → w",
+      "articulatory_difference": "Rhotic to labial-velar"
+    },
+    {
+      "reference": "light",
+      "hypothesis": "white",
+      "confusion_type": "liquid_glide",
+      "description": "Initial lateral vs labial-velar glide",
+      "phoneme_substitutions": "l → w",
+      "articulatory_difference": "Lateral to labial-velar"
+    },
+    {
+      "reference": "yet",
+      "hypothesis": "wet",
+      "confusion_type": "glide",
+      "description": "Initial palatal vs labial-velar glide",
+      "phoneme_substitutions": "j → w",
+      "articulatory_difference": "Palatal to labial-velar"
+    },
+    {
+      "reference": "crown",
+      "hypothesis": "clown",
+      "confusion_type": "liquid_cluster",
+      "description": "Liquid consonant cluster confusion",
+      "phoneme_substitutions": "r → l",
+      "articulatory_difference": "Rhotic to lateral in cluster"
+    },
+    {
+      "reference": "pray",
+      "hypothesis": "play",
+      "confusion_type": "liquid_cluster",
+      "description": "Liquid consonant cluster confusion",
+      "phoneme_substitutions": "r → l",
+      "articulatory_difference": "Rhotic to lateral in cluster"
+    },
+    {
+      "reference": "time",
+      "hypothesis": "fine",
+      "confusion_type": "visual_confusion",
+      "description": "Initial consonants with similar appearance",
+      "phoneme_substitutions": "t → f",
+      "articulatory_difference": "Different articulators, similar appearance"
+    },
+    {
+      "reference": "per",
+      "hypothesis": "bear",
+      "confusion_type": "visual_confusion",
+      "description": "Initial consonants with similar appearance",
+      "phoneme_substitutions": "p → b",
+      "articulatory_difference": "Same articulator, different voicing"
+    },
+    {
+      "reference": "mime",
+      "hypothesis": "nine",
+      "confusion_type": "visual_confusion",
+      "description": "Initial consonants with similar appearance",
+      "phoneme_substitutions": "m → n",
+      "articulatory_difference": "Both nasals, visually similar"
+    },
+    {
+      "reference": "vat",
+      "hypothesis": "bat",
+      "confusion_type": "visual_confusion",
+      "description": "Initial consonants with similar appearance",
+      "phoneme_substitutions": "v → b",
+      "articulatory_difference": "Both involve lips"
+    },
+    {
+      "reference": "pile",
+      "hypothesis": "file",
+      "confusion_type": "visual_confusion",
+      "description": "Initial consonants with similar appearance",
+      "phoneme_substitutions": "p → f",
+      "articulatory_difference": "Both involve lips"
+    },
+    {
+      "reference": "might",
+      "hypothesis": "night",
+      "confusion_type": "visual_confusion",
+      "description": "Initial nasals confusion",
+      "phoneme_substitutions": "m → n",
+      "articulatory_difference": "Bilabial vs alveolar nasal"
+    },
+    {
+      "reference": "the fat cat sat",
+      "hypothesis": "the vat cat sat",
+      "confusion_type": "context_fricative",
+      "description": "Fricative voicing in phrase context",
+      "phoneme_substitutions": "f → v",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "please pick the pen",
+      "hypothesis": "please pick the ben",
+      "confusion_type": "context_stop",
+      "description": "Stop voicing in phrase context",
+      "phoneme_substitutions": "p → b",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "mail it tomorrow",
+      "hypothesis": "nail it tomorrow",
+      "confusion_type": "context_nasal",
+      "description": "Nasal place in phrase context",
+      "phoneme_substitutions": "m → n",
+      "articulatory_difference": "Bilabial to alveolar"
+    },
+    {
+      "reference": "I really like rice",
+      "hypothesis": "I welly like wice",
+      "confusion_type": "context_liquid",
+      "description": "Liquid-glide substitution",
+      "phoneme_substitutions": "r → w",
+      "articulatory_difference": "Rhotic to labial-velar"
+    },
+    {
+      "reference": "four red roses",
+      "hypothesis": "four wed woses",
+      "confusion_type": "context_multiple",
+      "description": "Multiple r/w substitutions",
+      "phoneme_substitutions": "r → w",
+      "articulatory_difference": "Rhotic to labial-velar"
+    },
+    {
+      "reference": "She told Sam to stop",
+      "hypothesis": "She told Sam to top",
+      "confusion_type": "context_cluster",
+      "description": "Consonant cluster reduction",
+      "phoneme_substitutions": "st → t",
+      "articulatory_difference": "Cluster reduction"
+    },
+    {
+      "reference": "sip",
+      "hypothesis": "ship",
+      "confusion_type": "sibilant",
+      "description": "Alveolar vs postalveolar sibilant",
+      "phoneme_substitutions": "s → ʃ",
+      "articulatory_difference": "Alveolar to postalveolar"
+    },
+    {
+      "reference": "miss",
+      "hypothesis": "mesh",
+      "confusion_type": "sibilant",
+      "description": "Final alveolar vs postalveolar sibilant",
+      "phoneme_substitutions": "s → ʃ",
+      "articulatory_difference": "Alveolar to postalveolar"
+    },
+    {
+      "reference": "chew",
+      "hypothesis": "jew",
+      "confusion_type": "sibilant_affricate",
+      "description": "Voiceless vs voiced postalveolar affricate",
+      "phoneme_substitutions": "tʃ → dʒ",
+      "articulatory_difference": "Voiceless to voiced"
+    },
+    {
+      "reference": "watch",
+      "hypothesis": "wash",
+      "confusion_type": "affricate_fricative",
+      "description": "Affricate to fricative simplification",
+      "phoneme_substitutions": "tʃ → ʃ",
+      "articulatory_difference": "Loss of stop component"
+    },
+    {
+      "reference": "vision",
+      "hypothesis": "mission",
+      "confusion_type": "sibilant_voicing",
+      "description": "Voiced vs voiceless postalveolar fricative",
+      "phoneme_substitutions": "ʒ → ʃ",
+      "articulatory_difference": "Voiced to voiceless"
+    },
+    {
+      "reference": "pleasure",
+      "hypothesis": "pressure",
+      "confusion_type": "sibilant_voicing",
+      "description": "Voiced vs voiceless postalveolar fricative",
+      "phoneme_substitutions": "ʒ → ʃ",
+      "articulatory_difference": "Voiced to voiceless"
+    },
+    {
+      "reference": "want to go",
+      "hypothesis": "wanna go",
+      "confusion_type": "reduction",
+      "description": "Function word reduction",
+      "phoneme_substitutions": "want to → wanna",
+      "articulatory_difference": "Assimilation and vowel reduction"
+    },
+    {
+      "reference": "going to leave",
+      "hypothesis": "gonna leave",
+      "confusion_type": "reduction",
+      "description": "Common contraction",
+      "phoneme_substitutions": "going to → gonna",
+      "articulatory_difference": "Nasal assimilation"
+    },
+    {
+      "reference": "did you eat yet",
+      "hypothesis": "jeet yet",
+      "confusion_type": "reduction",
+      "description": "Connected speech processes",
+      "phoneme_substitutions": "did you eat → jeet",
+      "articulatory_difference": "Palatalization and syllable loss"
+    },
+    {
+      "reference": "what are you doing",
+      "hypothesis": "whatcha doing",
+      "confusion_type": "reduction",
+      "description": "Palatalization in casual speech",
+      "phoneme_substitutions": "what are you → whatcha",
+      "articulatory_difference": "Palatalization and vowel reduction"
+    },
+    {
+      "reference": "I don't know",
+      "hypothesis": "I dunno",
+      "confusion_type": "reduction",
+      "description": "Common phrase reduction",
+      "phoneme_substitutions": "don't know → dunno",
+      "articulatory_difference": "Nasal assimilation and vowel reduction"
+    },
+    {
+      "reference": "kind of nice",
+      "hypothesis": "kinda nice",
+      "confusion_type": "reduction",
+      "description": "Common phrase reduction",
+      "phoneme_substitutions": "kind of → kinda",
+      "articulatory_difference": "Vowel reduction"
+    },
+    {
+      "reference": "but",
+      "hypothesis": "fut",
+      "confusion_type": "stop_fricative",
+      "description": "Initial stop to fricative",
+      "phoneme_substitutions": "b → f",
+      "articulatory_difference": "Stop to fricative"
+    },
+    {
+      "reference": "vote",
+      "hypothesis": "boat",
+      "confusion_type": "fricative_stop",
+      "description": "Initial fricative to stop",
+      "phoneme_substitutions": "v → b",
+      "articulatory_difference": "Fricative to stop"
+    },
+    {
+      "reference": "that",
+      "hypothesis": "dat",
+      "confusion_type": "dental_alveolar",
+      "description": "Dental fricative to alveolar stop",
+      "phoneme_substitutions": "ð → d",
+      "articulatory_difference": "Fricative to stop"
+    },
+    {
+      "reference": "think",
+      "hypothesis": "tink",
+      "confusion_type": "dental_alveolar",
+      "description": "Voiceless dental fricative to alveolar stop",
+      "phoneme_substitutions": "θ → t",
+      "articulatory_difference": "Fricative to stop"
+    },
+    {
+      "reference": "breathe",
+      "hypothesis": "breed",
+      "confusion_type": "final_consonant",
+      "description": "Final dental fricative to alveolar stop",
+      "phoneme_substitutions": "ð → d",
+      "articulatory_difference": "Fricative to stop"
+    },
+    {
+      "reference": "sport",
+      "hypothesis": "support",
+      "confusion_type": "vowel_insertion",
+      "description": "Vowel insertion before /s/ clusters",
+      "phoneme_substitutions": "∅ → ə",
+      "articulatory_difference": "Schwa insertion"
+    },
+    {
+      "reference": "police",
+      "hypothesis": "plice",
+      "confusion_type": "vowel_deletion",
+      "description": "Unstressed vowel deletion",
+      "phoneme_substitutions": "ə → ∅",
+      "articulatory_difference": "Vowel deletion"
+    },
+    {
+      "reference": "chocolate",
+      "hypothesis": "choclate",
+      "confusion_type": "vowel_deletion",
+      "description": "Medial vowel deletion",
+      "phoneme_substitutions": "o → ∅",
+      "articulatory_difference": "Vowel deletion"
+    },
+    {
+      "reference": "family",
+      "hypothesis": "famly",
+      "confusion_type": "vowel_deletion",
+      "description": "Unstressed vowel deletion",
+      "phoneme_substitutions": "i → ∅",
+      "articulatory_difference": "Vowel deletion"
+    },
+    {
+      "reference": "temperature",
+      "hypothesis": "temprature",
+      "confusion_type": "vowel_deletion",
+      "description": "Unstressed vowel deletion",
+      "phoneme_substitutions": "ə → ∅",
+      "articulatory_difference": "Vowel deletion"
+    },
+    {
+      "reference": "thin",
+      "hypothesis": "tin",
+      "confusion_type": "l2_dental",
+      "description": "L2 dental fricative substitution",
+      "phoneme_substitutions": "θ → t",
+      "articulatory_difference": "Fricative to stop"
+    },
+    {
+      "reference": "this",
+      "hypothesis": "dis",
+      "confusion_type": "l2_dental",
+      "description": "L2 dental fricative substitution",
+      "phoneme_substitutions": "ð → d",
+      "articulatory_difference": "Fricative to stop"
+    },
+    {
+      "reference": "very",
+      "hypothesis": "berry",
+      "confusion_type": "l2_labiodental",
+      "description": "L2 labiodental fricative substitution",
+      "phoneme_substitutions": "v → b",
+      "articulatory_difference": "Fricative to stop"
+    },
+    {
+      "reference": "right",
+      "hypothesis": "light",
+      "confusion_type": "l2_liquid",
+      "description": "L2 liquid substitution",
+      "phoneme_substitutions": "r → l",
+      "articulatory_difference": "Rhotic to lateral"
+    },
+    {
+      "reference": "yellow",
+      "hypothesis": "jellow",
+      "confusion_type": "l2_glide",
+      "description": "L2 glide substitution",
+      "phoneme_substitutions": "j → dʒ",
+      "articulatory_difference": "Glide to affricate"
+    },
+    {
+      "reference": "record (noun)",
+      "hypothesis": "record (verb)",
+      "confusion_type": "stress_shift",
+      "description": "Stress pattern shift",
+      "phoneme_substitutions": "REcord → reCORD",
+      "articulatory_difference": "Stress shift"
+    },
+    {
+      "reference": "object (noun)",
+      "hypothesis": "object (verb)",
+      "confusion_type": "stress_shift",
+      "description": "Stress pattern shift",
+      "phoneme_substitutions": "OBject → obJECT",
+      "articulatory_difference": "Stress shift"
+    },
+    {
+      "reference": "permit (noun)",
+      "hypothesis": "permit (verb)",
+      "confusion_type": "stress_shift",
+      "description": "Stress pattern shift",
+      "phoneme_substitutions": "PERmit → perMIT",
+      "articulatory_difference": "Stress shift"
+    },
+    {
+      "reference": "asked",
+      "hypothesis": "ast",
+      "confusion_type": "cluster_reduction",
+      "description": "Medial consonant cluster reduction",
+      "phoneme_substitutions": "skt → st",
+      "articulatory_difference": "Loss of stop"
+    },
+    {
+      "reference": "texts",
+      "hypothesis": "tex",
+      "confusion_type": "cluster_reduction",
+      "description": "Final consonant cluster reduction",
+      "phoneme_substitutions": "ksts → ks",
+      "articulatory_difference": "Loss of final consonants"
+    },
+    {
+      "reference": "fifths",
+      "hypothesis": "fifs",
+      "confusion_type": "cluster_reduction",
+      "description": "Complex cluster reduction",
+      "phoneme_substitutions": "fθs → fs",
+      "articulatory_difference": "Loss of dental fricative"
+    },
+    {
+      "reference": "strengths",
+      "hypothesis": "strengs",
+      "confusion_type": "cluster_reduction",
+      "description": "Complex cluster reduction",
+      "phoneme_substitutions": "ŋθs → ŋs",
+      "articulatory_difference": "Loss of dental fricative"
+    },
+    {
+      "reference": "twelfths",
+      "hypothesis": "twelfs",
+      "confusion_type": "cluster_reduction",
+      "description": "Complex cluster reduction",
+      "phoneme_substitutions": "lfθs → lfs",
+      "articulatory_difference": "Loss of dental fricative"
+    },
+    {
+      "reference": "spin",
+      "hypothesis": "pin",
+      "confusion_type": "cluster_deletion",
+      "description": "Initial /s/ deletion",
+      "phoneme_substitutions": "s → ∅",
+      "articulatory_difference": "Common developmental pattern"
+    },
+    {
+      "reference": "hospital",
+      "hypothesis": "hopsital",
+      "confusion_type": "metathesis",
+      "description": "Consonant metathesis",
+      "phoneme_substitutions": "sp → ps",
+      "articulatory_difference": "Position exchange of consonants"
+    },
+    {
+      "reference": "animal",
+      "hypothesis": "aminal",
+      "confusion_type": "metathesis",
+      "description": "Consonant metathesis",
+      "phoneme_substitutions": "n...m → m...n",
+      "articulatory_difference": "Nasal consonant reordering"
+    },
+    {
+      "reference": "specific",
+      "hypothesis": "pacific",
+      "confusion_type": "metathesis",
+      "description": "Consonant metathesis",
+      "phoneme_substitutions": "sp → ps",
+      "articulatory_difference": "Common speech error"
+    },
+    {
+      "reference": "pat",
+      "hypothesis": "mat",
+      "confusion_type": "bilabial_confusion",
+      "description": "Bilabial consonant confusion",
+      "phoneme_substitutions": "p → m",
+      "articulatory_difference": "Stop to nasal at same place"
+    },
+    {
+      "reference": "bat",
+      "hypothesis": "mat",
+      "confusion_type": "bilabial_confusion",
+      "description": "Bilabial consonant confusion",
+      "phoneme_substitutions": "b → m",
+      "articulatory_difference": "Voiced stop to nasal"
+    },
+    {
+      "reference": "pan",
+      "hypothesis": "ban",
+      "confusion_type": "minimal_voicing",
+      "description": "Minimal voicing contrast",
+      "phoneme_substitutions": "p → b",
+      "articulatory_difference": "Voiceless to voiced bilabial"
+    },
+    {
+      "reference": "tie",
+      "hypothesis": "die",
+      "confusion_type": "minimal_voicing",
+      "description": "Minimal voicing contrast",
+      "phoneme_substitutions": "t → d",
+      "articulatory_difference": "Voiceless to voiced alveolar"
+    },
+    {
+      "reference": "coat",
+      "hypothesis": "goat",
+      "confusion_type": "minimal_voicing",
+      "description": "Minimal voicing contrast",
+      "phoneme_substitutions": "k → g",
+      "articulatory_difference": "Voiceless to voiced velar"
+    },
+    {
+      "reference": "suit",
+      "hypothesis": "shoot",
+      "confusion_type": "lip_ambiguity",
+      "description": "Ambiguous lip position",
+      "phoneme_substitutions": "s → ʃ",
+      "articulatory_difference": "Alveolar to post-alveolar"
+    },
+    {
+      "reference": "soon",
+      "hypothesis": "moon",
+      "confusion_type": "lip_ambiguity",
+      "description": "Ambiguous lip position",
+      "phoneme_substitutions": "s → m",
+      "articulatory_difference": "Alveolar fricative to bilabial nasal"
+    },
+    {
+      "reference": "feet",
+      "hypothesis": "sweet",
+      "confusion_type": "lip_ambiguity",
+      "description": "Ambiguous lip position",
+      "phoneme_substitutions": "f → sw",
+      "articulatory_difference": "Labiodental to complex onset"
+    },
+    {
+      "reference": "paper",
+      "hypothesis": "maker",
+      "confusion_type": "lip_ambiguity",
+      "description": "Ambiguous lip position",
+      "phoneme_substitutions": "p → m",
+      "articulatory_difference": "Bilabial stop to nasal"
+    },
+    {
+      "reference": "heed",
+      "hypothesis": "who'd",
+      "confusion_type": "lip_rounding",
+      "description": "Lip rounding contrast",
+      "phoneme_substitutions": "i → u",
+      "articulatory_difference": "Unrounded to rounded high vowel"
+    },
+    {
+      "reference": "heat",
+      "hypothesis": "hoot",
+      "confusion_type": "lip_rounding",
+      "description": "Lip rounding contrast",
+      "phoneme_substitutions": "i → u",
+      "articulatory_difference": "Unrounded to rounded high vowel"
+    },
+    {
+      "reference": "hit",
+      "hypothesis": "hut",
+      "confusion_type": "lip_aperture",
+      "description": "Lip aperture difference",
+      "phoneme_substitutions": "ɪ → ʌ",
+      "articulatory_difference": "High to mid-low vowel"
+    },
+    {
+      "reference": "bit",
+      "hypothesis": "but",
+      "confusion_type": "lip_aperture",
+      "description": "Lip aperture difference",
+      "phoneme_substitutions": "ɪ → ʌ",
+      "articulatory_difference": "High to mid-low vowel"
+    },
+    {
+      "reference": "I know",
+      "hypothesis": "hello",
+      "confusion_type": "real_error",
+      "description": "Common lip reading error",
+      "phoneme_substitutions": "aɪ n → h l",
+      "articulatory_difference": "Greeting confusion"
+    },
+    {
+      "reference": "thank you",
+      "hypothesis": "love you",
+      "confusion_type": "real_error",
+      "description": "Common lip reading error",
+      "phoneme_substitutions": "θ → l",
+      "articulatory_difference": "Dental fricative to lateral"
+    },
+    {
+      "reference": "I understand",
+      "hypothesis": "nine o'clock",
+      "confusion_type": "real_error",
+      "description": "Common lip reading error",
+      "phoneme_substitutions": "Multiple",
+      "articulatory_difference": "Phrase-level confusion"
+    },
+    {
+      "reference": "maybe",
+      "hypothesis": "baby",
+      "confusion_type": "real_error",
+      "description": "Common lip reading error",
+      "phoneme_substitutions": "m → b",
+      "articulatory_difference": "Nasal to stop confusion"
+    },
+    {
+      "reference": "play",
+      "hypothesis": "delay",
+      "confusion_type": "syllable_structure",
+      "description": "Syllable structure change",
+      "phoneme_substitutions": "pl → dəl",
+      "articulatory_difference": "Cluster simplification"
+    },
+    {
+      "reference": "street",
+      "hypothesis": "sweet",
+      "confusion_type": "syllable_structure",
+      "description": "Syllable structure change",
+      "phoneme_substitutions": "str → sw",
+      "articulatory_difference": "Cluster reduction"
+    },
+    {
+      "reference": "through",
+      "hypothesis": "true",
+      "confusion_type": "syllable_structure",
+      "description": "Syllable structure change",
+      "phoneme_substitutions": "θr → tr",
+      "articulatory_difference": "Dental fricative loss"
+    },
+    {
+      "reference": "strength",
+      "hypothesis": "strong",
+      "confusion_type": "syllable_structure",
+      "description": "Syllable structure change",
+      "phoneme_substitutions": "strɛŋθ → strɔŋ",
+      "articulatory_difference": "Coda simplification"
+    },
+    {
+      "reference": "butter",
+      "hypothesis": "budder",
+      "confusion_type": "flapping",
+      "description": "Alveolar flapping in American English",
+      "phoneme_substitutions": "t → ɾ",
+      "articulatory_difference": "Intervocalic flapping"
+    },
+    {
+      "reference": "water",
+      "hypothesis": "wader",
+      "confusion_type": "flapping",
+      "description": "Alveolar flapping in American English",
+      "phoneme_substitutions": "t → ɾ",
+      "articulatory_difference": "Intervocalic flapping"
+    },
+    {
+      "reference": "bottle",
+      "hypothesis": "bo'le",
+      "confusion_type": "glottal_replacement",
+      "description": "Glottal stop replacement in British English",
+      "phoneme_substitutions": "t → ʔ",
+      "articulatory_difference": "T-glottalization"
+    },
+    {
+      "reference": "better",
+      "hypothesis": "be'er",
+      "confusion_type": "glottal_replacement",
+      "description": "Glottal stop replacement in British English",
+      "phoneme_substitutions": "t → ʔ",
+      "articulatory_difference": "T-glottalization"
+    },
+    {
+      "reference": "thing",
+      "hypothesis": "sing",
+      "confusion_type": "l1_interference",
+      "description": "L1 interference (Chinese speakers)",
+      "phoneme_substitutions": "θ → s",
+      "articulatory_difference": "Dental to alveolar fricative"
+    },
+    {
+      "reference": "they",
+      "hypothesis": "day",
+      "confusion_type": "l1_interference",
+      "description": "L1 interference (Chinese speakers)",
+      "phoneme_substitutions": "ð → d",
+      "articulatory_difference": "Dental fricative to stop"
+    },
+    {
+      "reference": "rice",
+      "hypothesis": "lice",
+      "confusion_type": "l1_interference",
+      "description": "L1 interference (Japanese speakers)",
+      "phoneme_substitutions": "r → l",
+      "articulatory_difference": "Liquid substitution"
+    },
+    {
+      "reference": "very",
+      "hypothesis": "berry",
+      "confusion_type": "l1_interference",
+      "description": "L1 interference (Spanish speakers)",
+      "phoneme_substitutions": "v → b",
+      "articulatory_difference": "Labiodental to bilabial"
+    },
+    {
+      "reference": "because",
+      "hypothesis": "cuz",
+      "confusion_type": "casual_speech",
+      "description": "Casual speech reduction",
+      "phoneme_substitutions": "bɪkɔz → kʌz",
+      "articulatory_difference": "Function word reduction"
+    },
+    {
+      "reference": "probably",
+      "hypothesis": "prolly",
+      "confusion_type": "casual_speech",
+      "description": "Casual speech reduction",
+      "phoneme_substitutions": "prɑbəbli → prɑli",
+      "articulatory_difference": "Medial syllable deletion"
+    },
+    {
+      "reference": "naturally",
+      "hypothesis": "nacherly",
+      "confusion_type": "casual_speech",
+      "description": "Casual speech reduction",
+      "phoneme_substitutions": "nætʃərəli → nætʃərli",
+      "articulatory_difference": "Vowel reduction"
+    },
+    {
+      "reference": "suppose to",
+      "hypothesis": "sposeta",
+      "confusion_type": "casual_speech",
+      "description": "Casual speech contraction",
+      "phoneme_substitutions": "səpoz tu → spozətə",
+      "articulatory_difference": "Function word merging"
+    },
+    {
+      "reference": "fin",
+      "hypothesis": "thin",
+      "confusion_type": "audiological",
+      "description": "Audiological confusion",
+      "phoneme_substitutions": "f → θ",
+      "articulatory_difference": "Labiodental to dental fricative"
+    },
+    {
+      "reference": "ship",
+      "hypothesis": "sip",
+      "confusion_type": "audiological",
+      "description": "Audiological confusion",
+      "phoneme_substitutions": "ʃ → s",
+      "articulatory_difference": "Postalveolar to alveolar fricative"
+    },
+    {
+      "reference": "mash",
+      "hypothesis": "math",
+      "confusion_type": "audiological",
+      "description": "Audiological confusion",
+      "phoneme_substitutions": "ʃ → θ",
+      "articulatory_difference": "Postalveolar to dental fricative"
+    },
+    {
+      "reference": "bath",
+      "hypothesis": "bass",
+      "confusion_type": "audiological",
+      "description": "Audiological confusion",
+      "phoneme_substitutions": "θ → s",
+      "articulatory_difference": "Dental to alveolar fricative"
+    },
+    {
+      "reference": "nice house",
+      "hypothesis": "nice owl",
+      "confusion_type": "resyllabification",
+      "description": "Cross-word resyllabification",
+      "phoneme_substitutions": "s.h → s.aʊ",
+      "articulatory_difference": "Boundary shift"
+    },
+    {
+      "reference": "an aim",
+      "hypothesis": "a name",
+      "confusion_type": "resyllabification",
+      "description": "Cross-word resyllabification",
+      "phoneme_substitutions": "ən.eɪm → ə.neɪm",
+      "articulatory_difference": "Boundary shift"
+    },
+    {
+      "reference": "ice cream",
+      "hypothesis": "I scream",
+      "confusion_type": "resyllabification",
+      "description": "Cross-word resyllabification",
+      "phoneme_substitutions": "aɪs.krim → aɪ.skrim",
+      "articulatory_difference": "Boundary shift"
+    },
+    {
+      "reference": "that stuff",
+      "hypothesis": "that's tough",
+      "confusion_type": "resyllabification",
+      "description": "Cross-word resyllabification",
+      "phoneme_substitutions": "ðæt.stʌf → ðæts.tʌf",
+      "articulatory_difference": "Boundary shift"
+    }
+  ]
+}
