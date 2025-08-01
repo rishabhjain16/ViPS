@@ -5,12 +5,8 @@ import numpy as np
 import math
 from collections import Counter, defaultdict
 from itertools import chain
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt  # Kept for possible use elsewhere
 import pandas as pd
-from matplotlib.colors import LinearSegmentedColormap, LogNorm
-from matplotlib.patches import Patch
 from datetime import datetime
 import panphon
 import panphon.distance
@@ -463,10 +459,6 @@ class LipReadingEvaluator:
                 elif cost_function is not None:
                     # Use provided cost function
                     cost = cost_function(seq1[i-1], seq2[j-1])
-                elif hasattr(self, 'use_weighted_distance') and self.use_weighted_distance and allow_weighted and hasattr(self, 'viseme_similarity_matrix'):
-                    # Use weighted cost from similarity matrix for visemes
-                    similarity = self.viseme_similarity_matrix.get((seq1[i-1], seq2[j-1]), 0)
-                    cost = 1.0 - similarity
                 else:
                     # Standard binary cost
                     cost = 1
@@ -487,9 +479,6 @@ class LipReadingEvaluator:
                     match_cost = 0
                 elif cost_function is not None:
                     match_cost = cost_function(seq1[i-1], seq2[j-1])
-                elif hasattr(self, 'use_weighted_distance') and self.use_weighted_distance and allow_weighted and hasattr(self, 'viseme_similarity_matrix'):
-                    similarity = self.viseme_similarity_matrix.get((seq1[i-1], seq2[j-1]), 0)
-                    match_cost = 1.0 - similarity
                 else:
                     match_cost = 1
                 
@@ -769,46 +758,28 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         self.weight_method = weight_method
         self.feature_weights = {}
         
-        # Initialize viseme similarity matrix
-        self.viseme_similarity_matrix = {}
-        
         # Calculate weights if enabled
         if use_weighted_distance:
-            # Debug: Before weight calculation
-            print("[Debug] Before weight calculation")
-            
             # Calculate weights from scratch
             calculated_weights = self.calculate_phonetic_feature_weights()
             
-            # Debug: After weight calculation
-            print(f"[Debug] After weight calculation. Got {len(calculated_weights) if calculated_weights else 0} weights")
-            
             # Store the weights
             self.feature_weights = calculated_weights
-            
-            # Debug: After assignment
-            print(f"[Debug] After assignment. feature_weights has {len(self.feature_weights)} entries")
-            
-            # Calculate viseme similarity matrix
-            self.viseme_similarity_matrix = self.calculate_viseme_similarity_matrix()
     
     def save_weights_to_file(self, file_path):
         """
-        Save computed weights and similarity matrix to file for later use
+        Save computed weights and analysis data to JSON file for later use
         
         Parameters:
         - file_path: Path to save JSON file with weights
         """
         try:
-            # Convert tuple keys to strings for JSON serialization
-            serializable_matrix = {
-                f"{k[0]},{k[1]}": v 
-                for k, v in self.viseme_similarity_matrix.items()
-            }
-            
+            # Create more comprehensive data structure with detailed weights info
             data = {
                 'feature_weights': self.feature_weights,
-                'viseme_similarity_matrix': serializable_matrix
+                'weight_method': self.weight_method,
+                'feature_entropies': self.feature_entropies,
+                'visual_distinctiveness': self.visual_distinctiveness,
             }
             
             # Create directory if it doesn't exist
@@ -816,15 +787,11 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             
             with open(file_path, 'w') as f:
                 json.dump(data, f, indent=2)
-                
-            print(f"Saved weights and similarity matrix to {file_path}")
         except Exception as e:
             print(f"Error saving weights to file: {e}")
 
     def calculate_phonetic_feature_weights(self):
         """Calculate feature weights based on phonetic importance"""
-        print(f"Calculating phonetic feature weights using method: {self.weight_method}")
-        
         # Get all features from panphon
         all_features = self.ft.names
         self.feature_entropies = {}
@@ -834,8 +801,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         # Generate phoneme inventory
         phoneme_inventory = [p for p in self.phoneme_to_viseme.keys() 
                            if p not in self.SILENCE_MARKERS]
-        
-        print(f"Using {len(phoneme_inventory)} phonemes from IPA inventory for weight calculation")
         
         # Calculate entropy for each feature
         for feature_idx, feature in enumerate(all_features):
@@ -918,154 +883,10 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                     self.visual_distinctiveness[feature]
                 )
         
-        print("Feature weights calculated successfully")
-        
         return self.feature_weights
     
-    def save_feature_weights_table(self, file_path):
-        """
-        Save the feature weights table (entropy, visual distinctiveness, weights) to a text file in a nicely formatted table.
-        """
-        try:
-            # Create directory if it doesn't exist
-            os.makedirs(os.path.dirname(os.path.abspath(file_path)), exist_ok=True)
-            
-            with open(file_path, 'w') as f:
-                # Write header
-                f.write("Feature Weights Analysis Table\n")
-                f.write("=" * 65 + "\n\n")
-                f.write("Weight calculation method: {}\n".format(self.weight_method))
-                f.write("Note: Weights are calculated as the product of entropy and visual distinctiveness.\n\n")
-                
-                # Table header
-                f.write("{:<12} | {:<10} | {:<22} | {:<12}\n".format(
-                    "Feature", "Entropy", "Visual Distinctiveness", "Weight"))
-                f.write("-" * 12 + "-+-" + "-" * 10 + "-+-" + "-" * 22 + "-+-" + "-" * 12 + "\n")
-                
-                # Sort features by weight for better readability
-                sorted_features = sorted(
-                    self.feature_weights.keys(),
-                    key=lambda f: self.feature_weights[f],
-                    reverse=True
-                )
-                
-                # Write each feature's data
-                for feature in sorted_features:
-                    entropy = self.feature_entropies[feature]
-                    distinctiveness = self.visual_distinctiveness[feature]
-                    weight = self.feature_weights[feature]
-                    
-                    f.write("{:<12} | {:<10.3f} | {:<22.3f} | {:<12.3f}\n".format(
-                        feature, entropy, distinctiveness, weight))
-                
-                # Write summary statistics
-                f.write("\nSummary Statistics\n")
-                f.write("-" * 20 + "\n")
-                f.write("Average Entropy: {:.3f}\n".format(
-                    sum(self.feature_entropies.values()) / len(self.feature_entropies)))
-                f.write("Average Visual Distinctiveness: {:.3f}\n".format(
-                    sum(self.visual_distinctiveness.values()) / len(self.visual_distinctiveness)))
-                f.write("Average Weight: {:.3f}\n".format(
-                    sum(self.feature_weights.values()) / len(self.feature_weights)))
-                
-            print(f"Saved feature weights table to {file_path}")
-        except Exception as e:
-            print(f"Error saving feature weights table: {e}")
-    
-    def calculate_viseme_similarity_matrix(self):
-        """
-        Calculate similarity between viseme pairs based on their phonetic features.
-        Similarity is based directly on feature space distances without normalization.
-        
-        Returns:
-            dict: Mapping of (viseme1, viseme2) tuples to similarity values
-        """
-        print("Calculating viseme similarity matrix...")
-        similarity_matrix = {}
-        
-        # Get all valid viseme classes (excluding silence markers)
-        viseme_classes = sorted(set(
-            self.map_phoneme_to_viseme(p) 
-            for p in self.phoneme_to_viseme.keys() 
-            if p not in self.SILENCE_MARKERS and p
-        ))
-        print(f"Processing {len(viseme_classes)} viseme classes")
-        
-        # Get all phonemes for each viseme class
-        viseme_to_phonemes = {}
-        for viseme in viseme_classes:
-            viseme_to_phonemes[viseme] = [
-                p for p in self.phoneme_to_viseme.keys()
-                if self.map_phoneme_to_viseme(p) == viseme and p not in self.SILENCE_MARKERS
-            ]
-        
-        # Calculate similarity between each pair of viseme classes
-        for viseme1 in viseme_classes:
-            for viseme2 in viseme_classes:
-                # For same viseme class, use the internal similarity of its phonemes
-                if viseme1 == viseme2:
-                    phonemes = viseme_to_phonemes[viseme1]
-                    if len(phonemes) <= 1:
-                        # Single phoneme or empty viseme class
-                        similarity_matrix[(viseme1, viseme2)] = 1.0
-                    else:
-                        # Calculate average distance between all phonemes in this viseme
-                        distances = []
-                        for i, p1 in enumerate(phonemes):
-                            for p2 in phonemes[i+1:]:  # Compare each pair once
-                                try:
-                                    distance = self.calculate_phoneme_distance(p1, p2, use_weights=True)
-                                    if distance != float('inf'):
-                                        distances.append(distance)
-                                except Exception as e:
-                                    print(f"Error comparing '{p1}' and '{p2}': {e}")
-                        
-                        if distances:
-                            # Use exponential decay to convert distance to similarity
-                            # exp(-x) gives 1.0 for x=0 and approaches 0 as x increases
-                            avg_distance = sum(distances) / len(distances)
-                            similarity_matrix[(viseme1, viseme2)] = math.exp(-avg_distance)
-                        else:
-                            similarity_matrix[(viseme1, viseme2)] = 1.0
-                    continue
-                
-                # Skip if already calculated (symmetrical)
-                if (viseme1, viseme2) in similarity_matrix or (viseme2, viseme1) in similarity_matrix:
-                    continue
-                
-                phonemes1 = viseme_to_phonemes.get(viseme1, [])
-                phonemes2 = viseme_to_phonemes.get(viseme2, [])
-                
-                if not phonemes1 or not phonemes2:
-                    # No phonemes to compare
-                    similarity = 0.0
-                else:
-                    # Calculate distances between all phoneme pairs
-                    distances = []
-                    for p1 in phonemes1:
-                        for p2 in phonemes2:
-                            try:
-                                distance = self.calculate_phoneme_distance(p1, p2, use_weights=True)
-                                if distance != float('inf'):
-                                    distances.append(distance)
-                            except Exception as e:
-                                print(f"Error comparing '{p1}' and '{p2}': {e}")
-                    
-                    if distances:
-                        # Convert average distance to similarity using exponential decay
-                        avg_distance = sum(distances) / len(distances)
-                        similarity = math.exp(-avg_distance)
-                    else:
-                        similarity = 0.0
-                
-                # Store in matrix (symmetrical)
-                similarity_matrix[(viseme1, viseme2)] = similarity
-                similarity_matrix[(viseme2, viseme1)] = similarity
-        
-        self.viseme_similarity_matrix = similarity_matrix
-        print("Viseme similarity matrix calculated successfully")
-        
-        return similarity_matrix
+    # The calculate_viseme_similarity_matrix function has been removed
+    # as part of codebase simplification since only standard viseme score is used now
     
     def calculate_phonetic_distance(self, phoneme1, phoneme2):
         """
@@ -1523,35 +1344,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         
         return metrics, per_example_metrics
     
-    def save_additional_metrics_to_file(self, metrics, file_path=None):
-        """
-        Save additional metrics to a separate file
-        
-        Parameters:
-        - metrics: Dictionary with metrics to save
-        - file_path: Path to save file (default: metrics.txt in current directory)
-        """
-        if not metrics:
-            print("No metrics to save")
-            return
-            
-        if file_path is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            file_path = f'metrics_{timestamp}.txt'
-        
-        try:
-            # Create directory if it doesn't exist
-            os.makedirs(os.path.dirname(os.path.abspath(file_path)), exist_ok=True)
-            
-            with open(file_path, 'w') as f:
-                f.write("=== ADDITIONAL METRICS ===\n\n")
-                for metric, value in sorted(metrics.items()):
-                    f.write(f"{metric}: {value:.4f}\n")
-            
-            print(f"Saved additional metrics to {file_path}")
-        except Exception as e:
-            print(f"Error saving additional metrics: {e}")
-
     def analyze_json_dataset_with_comparisons(self, json_file, output_file=None, max_samples=None, include_all_metrics=False, export_csv=False):
         """
         Analyze a dataset with both standard and weighted approaches for comparison
@@ -1622,14 +1414,15 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             # Process all examples with both approaches
             all_results = []
             
-            # Add progress reporting
-            print("Starting evaluation with both standard and weighted approaches...")
-            total_examples = len(example_pairs)
+            # Add progress reporting with tqdm
+            try:
+                from tqdm import tqdm
+                example_iterator = tqdm(example_pairs, desc="Evaluating examples", unit="example")
+            except ImportError:
+                print("Note: Install tqdm for better progress bars (pip install tqdm)")
+                example_iterator = example_pairs
             
-            for i, (ref, hyp) in enumerate(example_pairs):
-                if i % 10 == 0 or i == total_examples - 1:
-                    print(f"Evaluating example {i+1}/{total_examples} ({(i+1)/total_examples*100:.1f}%)")
-                
+            for ref, hyp in example_iterator:
                 # Evaluate with both approaches
                 results = self.compare_standard_and_weighted(ref, hyp)
                 all_results.append(results)
@@ -1645,22 +1438,52 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             # Add additional metrics if requested
             per_example_metrics = []
             if include_all_metrics:
-                print("\nCalculating additional metrics...")
                 additional_metrics, per_example_metrics = self.calculate_additional_metrics(example_pairs)
                 summary['additional_metrics'] = additional_metrics
             
-            # Print summary
+            # Print summary in a cleaner format
             print("\n=== ANALYSIS SUMMARY ===")
             print(f"Total examples: {summary['num_examples']}")
-            print(f"Standard Viseme Score: {summary['standard_viseme_score']:.3f}")
-            print(f"Standard Phoneme Score: {summary['standard_phoneme_score']:.3f}")
-            print(f"ViPS Score: {summary['vips_score']:.3f}")
+            
+            # Main scores in a table-like format
+            print("\nMain Metrics:")
+            print(f"  Standard Viseme Score:  {summary['standard_viseme_score']:.4f}")
+            print(f"  Standard Phoneme Score: {summary['standard_phoneme_score']:.4f}")
+            print(f"  ViPS Score:             {summary['vips_score']:.4f}")
             
             # Print additional metrics if requested
             if include_all_metrics and 'additional_metrics' in summary:
                 print("\nAdditional Metrics:")
-                for metric, value in summary['additional_metrics'].items():
-                    print(f"  {metric}: {value:.4f}")
+                
+                # Group metrics for cleaner display
+                error_metrics = ["character_error_rate", "word_error_rate", "semantic_wer"]
+                similarity_metrics = ["word_similarity", "semantic_similarity"]
+                score_metrics = ["meteor_score", "sentence_bleu_score"]
+                rouge_metrics = ["rouge1_score", "rouge2_score", "rougeL_score"]
+                bert_metrics = ["bertscore_precision", "bertscore_recall", "bertscore_f1"]
+                
+                # Helper function to print metric groups
+                def print_metric_group(title, metrics_list):
+                    metrics_dict = summary['additional_metrics']
+                    existing_metrics = [m for m in metrics_list if m in metrics_dict]
+                    if existing_metrics:
+                        print(f"  {title}:")
+                        for metric in existing_metrics:
+                            print(f"    {metric.replace('_', ' ').title()}: {metrics_dict[metric]:.4f}")
+                
+                # Print metrics by group
+                print_metric_group("Error Rates", error_metrics)
+                print_metric_group("Similarity Metrics", similarity_metrics)
+                print_metric_group("Score Metrics", score_metrics)
+                print_metric_group("ROUGE Metrics", rouge_metrics)
+                print_metric_group("BERTScore Metrics", bert_metrics)
+                
+                # Print any metrics that didn't fit in the groups
+                other_metrics = [m for m in summary['additional_metrics'] 
+                               if m not in error_metrics + similarity_metrics + 
+                                  score_metrics + rouge_metrics + bert_metrics]
+                if other_metrics:
+                    print_metric_group("Other Metrics", other_metrics)
             
             # Save results if output file specified
             if output_file:
@@ -1808,175 +1631,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             import traceback
             traceback.print_exc()
 
-    def visualize_results(self, analysis_results, output_dir):
-        """Create visualizations for the analysis results"""
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Get all results from the analysis
-        all_results = analysis_results.get('results', [])
-        summary = analysis_results.get('summary', {})
-        
-        if not all_results:
-            print("No results to visualize")
-            return
-        
-        print(f"Creating visualizations in {output_dir}...")
-        
-        # Create confusion matrices
-        self._plot_confusion_matrices(all_results, output_dir)
-        
-        print("Visualizations complete")
-    
-    def _plot_confusion_matrices(self, all_results, output_dir):
-        """Plot viseme confusion matrices for standard and weighted approaches"""
-        # Collect viseme substitutions from alignments
-        std_substitutions = []
-        wgt_substitutions = []
-        
-        for result in all_results:
-            ref_phonemes = result.get('ref_phonemes', [])
-            hyp_phonemes = result.get('hyp_phonemes', [])
-            
-            # Ensure we have phonemes for processing
-            if not ref_phonemes:
-                ref_phonemes = self.text_to_phonemes(result['reference'])
-            if not hyp_phonemes:
-                hyp_phonemes = self.text_to_phonemes(result['hypothesis'])
-            
-            # Convert phonemes to visemes - using consistent phoneme-to-viseme mapping
-            ref_visemes = [self.map_phoneme_to_viseme(p) for p in ref_phonemes]
-            hyp_visemes = [self.map_phoneme_to_viseme(p) for p in hyp_phonemes]
-            
-            # Get alignment and find substitutions
-            # First for standard approach
-            self.use_weighted_distance = False
-            alignment, _ = self.calculate_viseme_alignment(ref_visemes, hyp_visemes)
-            for op, ref_v, hyp_v in alignment:
-                if op == 'substitute':
-                    std_substitutions.append((ref_v, hyp_v))
-            
-            # Then for weighted approach
-            self.use_weighted_distance = True
-            alignment, _ = self.calculate_viseme_alignment(ref_visemes, hyp_visemes)
-            for op, ref_v, hyp_v in alignment:
-                if op == 'substitute':
-                    wgt_substitutions.append((ref_v, hyp_v))
-        
-        # Restore original setting
-        self.use_weighted_distance = getattr(self, 'use_weighted_distance', True)
-        
-        # Get unique viseme classes from the data
-        all_visemes = list(range(22))  # We use 22 viseme classes (0-21)
-        
-        # Use the viseme_id_to_name from the parent class for better readability
-        if hasattr(self, 'viseme_id_to_name'):
-            viseme_names = self.viseme_id_to_name
-        else:
-            # Fallback to basic naming
-            viseme_names = {v: f"Viseme {v}" for v in all_visemes}
-        
-        # Create shortened labels for the axis to avoid overlap
-        viseme_labels = [f"{v}" for v in all_visemes]
-        
-        # Create confusion matrices
-        if std_substitutions and all_visemes:
-            # Standard approach matrix   
-            std_true, std_pred = zip(*std_substitutions)
-            std_cm = confusion_matrix(std_true, std_pred, labels=all_visemes)
-            
-            # Normalize safely - avoid division by zero
-            row_sums = std_cm.sum(axis=1)
-            std_cm_norm = np.zeros_like(std_cm, dtype=float)
-            for i in range(len(row_sums)):
-                if row_sums[i] > 0:  # Only normalize if row sum is positive
-                    std_cm_norm[i] = std_cm[i] / row_sums[i]
-            
-            # Weighted approach matrix
-            wgt_true, wgt_pred = zip(*wgt_substitutions)
-            wgt_cm = confusion_matrix(wgt_true, wgt_pred, labels=all_visemes)
-            
-            # Normalize safely - avoid division by zero
-            row_sums = wgt_cm.sum(axis=1)
-            wgt_cm_norm = np.zeros_like(wgt_cm, dtype=float)
-            for i in range(len(row_sums)):
-                if row_sums[i] > 0:  # Only normalize if row sum is positive
-                    wgt_cm_norm[i] = wgt_cm[i] / row_sums[i]
-            
-            # Add diagnostic information about viseme class distribution
-            missing_std_visemes = [v for i, v in enumerate(all_visemes) if row_sums[i] == 0]
-            if missing_std_visemes:
-                print(f"Note: Some viseme classes were not found in reference data: {missing_std_visemes}")
-                print("This is normal if your dataset doesn't contain examples of these viseme classes.")
-                missing_names = [self.viseme_id_to_name.get(v, f"Class {v}") for v in missing_std_visemes]
-                print(f"Missing classes: {', '.join(missing_names)}")
-            
-            # Calculate difference matrix
-            diff_cm = wgt_cm_norm - std_cm_norm
-            
-            # Define colormaps
-            std_cmap = plt.cm.Blues
-            wgt_cmap = plt.cm.Blues
-            diff_cmap = sns.diverging_palette(240, 10, as_cmap=True)
-            
-            # Helper function to create and save a confusion matrix heatmap
-            def create_heatmap(matrix, title, filename, cmap, vmin=0, vmax=1, center=None):
-                plt.figure(figsize=(16, 12))
-                
-                # Split figure for main plot and legend
-                gs = plt.GridSpec(1, 2, width_ratios=[3, 1])
-                
-                # Main heatmap axis
-                ax_heatmap = plt.subplot(gs[0])
-                ax_legend = plt.subplot(gs[1])
-                
-                # Create the heatmap
-                sns.heatmap(matrix, annot=True, fmt='.2f', cmap=cmap, square=True, 
-                           vmin=vmin, vmax=vmax, center=center,
-                           annot_kws={"size": 8}, xticklabels=viseme_labels, 
-                           yticklabels=viseme_labels, ax=ax_heatmap)
-                
-                # Set labels
-                ax_heatmap.set_title(title)
-                ax_heatmap.set_xlabel('Predicted Viseme')
-                ax_heatmap.set_ylabel('True Viseme')
-                
-                # Add legend in the right panel
-                ax_legend.axis('off')
-                legend_text = "Viseme Reference:\n\n"
-                for v in all_visemes:
-                    legend_text += f"{v}: {viseme_names.get(v, 'Unknown')}\n"
-                ax_legend.text(0, 0.5, legend_text, va='center', fontsize=10)
-                
-                # Save plot
-                plt.tight_layout()
-                plt.savefig(os.path.join(output_dir, filename), dpi=300)
-                plt.close()
-            
-            # Create the three different confusion matrix visualizations
-            create_heatmap(
-                std_cm_norm, 
-                'Standard Approach - Viseme Confusion Matrix',
-                'standard_confusion_matrix.png',
-                std_cmap
-            )
-            
-            create_heatmap(
-                wgt_cm_norm, 
-                'Weighted Approach - Viseme Confusion Matrix',
-                'weighted_confusion_matrix.png',
-                wgt_cmap
-            )
-            
-            create_heatmap(
-                diff_cm, 
-                'Difference (Weighted - Standard) Confusion Matrix',
-                'difference_confusion_matrix.png',
-                diff_cmap,
-                vmin=-0.5,
-                vmax=0.5,
-                center=0
-            )
-    
     def standard_phonetic_distance(self, phoneme1, phoneme2):
         """
         Calculate phonetic distance using the standard (non-weighted) approach.
@@ -2090,7 +1744,6 @@ def main():
         weights_path = os.path.join(args.save_dir, f'viseme_weights{method_suffix}.json')
     
     results_path = os.path.join(args.save_dir, f'results{method_suffix}.json')
-    metrics_path = os.path.join(args.save_dir, f'metrics{method_suffix}.txt')
     examples_path = os.path.join(args.save_dir, f'phonetic_examples{method_suffix}.csv')
     comparison_text_path = os.path.join(args.save_dir, f'phonetic_comparisons{method_suffix}.txt')
     
@@ -2205,48 +1858,6 @@ def main():
     # Create weighted evaluator with the specified weight method
     evaluator = WeightedLipReadingEvaluator(weight_method=args.weight_method)
     
-    # Debug: Check feature weights
-    print(f"Initial feature weights: {len(evaluator.feature_weights) if hasattr(evaluator, 'feature_weights') and evaluator.feature_weights else 'Not set'}")
-    
-    # Print phoneme conversion approach
-    print("\n=== USING IPA CONVERSION ===")
-    print(f"Using weight method: {args.weight_method}")
-    
-    print("Note: Weights are now always calculated from scratch")
-    
-    # Quick conversion test with a sentence containing 'oy' diphthong
-    test_sentence = "I enjoy toys and boys playing outside."
-    phonemes = evaluator.text_to_phonemes(test_sentence)
-    print(f"Test conversion: '{test_sentence}'")
-    print(f"Phonemes: {' '.join(phonemes)}")
-
-    # Add detailed debugging of each phoneme and its viseme mapping
-    print("\nDetailed phoneme-to-viseme mapping:")
-    for p in phonemes:
-        viseme_id = evaluator.map_phoneme_to_viseme(p)
-        if viseme_id == 0:
-            print(f"  '{p}' -> {viseme_id} (SILENCE)")
-        else:
-            print(f"  '{p}' -> {viseme_id} ({evaluator.viseme_id_to_name.get(viseme_id, 'Unknown')})")
-
-    # Show all visemes
-    visemes = [evaluator.map_phoneme_to_viseme(p) for p in phonemes]
-    print(f"Visemes: {' '.join(str(v) for v in visemes)}")
-
-    # Count silence visemes
-    silence_count = sum(1 for v in visemes if v == 0)
-    print(f"Silence visemes: {silence_count} out of {len(visemes)} ({silence_count/len(visemes)*100:.1f}%)")
-    print()
-    
-    # Save weights
-    if hasattr(evaluator, 'feature_weights') and evaluator.feature_weights:
-        print(f"Feature weights before saving: {len(evaluator.feature_weights)} entries")
-        evaluator.save_weights_to_file(weights_path)
-        print(f"Saved computed weights to {weights_path}")
-    else:
-        print(f"No feature weights available to save. Type: {type(evaluator.feature_weights)}")
-        print(f"Feature weights content: {evaluator.feature_weights}")
-    
     # Process JSON file if provided
     if args.json:
         results = evaluator.analyze_json_dataset_with_comparisons(
@@ -2258,17 +1869,7 @@ def main():
         )
         
         if results:
-            # If all metrics were requested, save them
-            if args.all and 'summary' in results and 'additional_metrics' in results['summary']:
-                evaluator.save_additional_metrics_to_file(
-                    results['summary']['additional_metrics'], 
-                    file_path=metrics_path
-                )
-            
-            print("\nGenerating visualizations...")
-            evaluator.visualize_results(results, output_dir=args.save_dir)
-            print(f"\nAnalysis complete! Using IPA conversion with {args.weight_method} weighting.")
-            print(f"All outputs saved to: {args.save_dir}")
+            print(f"Analysis complete! All outputs saved to: {args.save_dir}")
 
 
 if __name__ == "__main__":

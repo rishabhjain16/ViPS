@@ -12,3 +12,4 @@ torch
 sentence-transformers
 bert-score
 csv
+tqdm
