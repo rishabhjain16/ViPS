@@ -2065,7 +2065,7 @@ def main():
     parser.add_argument('--weights', type=str, help='Path to save computed weights (will not load from this file)')
     parser.add_argument('--save_dir', type=str, default=None, help='Directory to save all outputs (default: current directory)')
     parser.add_argument('--max_samples', type=int, default=None, help='Maximum number of samples to process')
-    parser.add_argument('-all', action='store_true', help='Calculate all metrics including WER, CER, and others')
+    parser.add_argument('--all', action='store_true', help='Calculate all metrics including WER, CER, and others')
     parser.add_argument('--csv', action='store_true', help='Export results to CSV file')
     parser.add_argument('--save-examples', action='store_true', help='Save examples to CSV file')
     parser.add_argument('--save-text', action='store_true', help='Save examples to readable text file')

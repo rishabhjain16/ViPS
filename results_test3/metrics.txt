@@ -1,0 +1,15 @@
+=== ADDITIONAL METRICS ===
+
+bertscore_f1: 0.9802
+bertscore_precision: 0.9793
+bertscore_recall: 0.9812
+character_error_rate: 0.0406
+meteor_score: 0.9156
+rouge1_score: 0.9314
+rouge2_score: 0.8899
+rougeL_score: 0.9313
+semantic_similarity: 0.9124
+semantic_wer: 0.0876
+sentence_bleu_score: 0.7749
+word_error_rate: 0.0844
+word_similarity: 0.9721
