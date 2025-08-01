@@ -107,18 +107,28 @@ def interactive_test():
             # Calculate scores
             results = evaluator.compare_standard_and_weighted(reference, hypothesis)
             
+            # Calculate additional metrics for this single pair
+            additional_metrics, _ = evaluator.calculate_additional_metrics([(reference, hypothesis)])
+            
             # Display results
             standard_viseme_score = results['standard']['standard_viseme_score']
             standard_phoneme_score = results['standard']['standard_phoneme_score']
             vips_score = results['weighted']['vips_score']
             vips_improvement = vips_score - standard_phoneme_score
-            
+
             print(f"\n{'Metric':<25} {'Score':<10}")
             print(f"{'-'*35}")
             print(f"{'Standard Viseme Score':<25} {standard_viseme_score:<10.3f}")
             print(f"{'Standard Phoneme Score':<25} {standard_phoneme_score:<10.3f}")
             print(f"{'ViPS Score':<25} {vips_score:<10.3f}")
             print(f"{'ViPS Improvement':<25} {vips_improvement:+<10.3f}")
+            
+            # Display additional metrics if available
+            if additional_metrics:
+                print(f"\n{'Additional Metrics':<25} {'Score':<10}")
+                print(f"{'-'*35}")
+                for metric_name, metric_value in additional_metrics.items():
+                    print(f"{metric_name.replace('_', ' ').title():<25} {metric_value:<10.4f}")
             
     except Exception as e:
         print(f"❌ Error: {e}")

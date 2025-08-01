@@ -920,13 +920,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         
         print("Feature weights calculated successfully")
         
-        # Save the weights table
-        weights_table_path = os.path.join(
-            os.path.dirname(os.path.abspath(self.weights_file)) if hasattr(self, 'weights_file') else 'viseme_output',
-            'feature_weights_table.txt'
-        )
-        self.save_feature_weights_table(weights_table_path)
-        
         return self.feature_weights
     
     def save_feature_weights_table(self, file_path):
@@ -1641,40 +1634,12 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 results = self.compare_standard_and_weighted(ref, hyp)
                 all_results.append(results)
             
-            # Calculate summary statistics
+            # Calculate summary statistics with simplified format
             summary = {
                 'num_examples': len(all_results),
-                'standard': {
-                    'avg_standard_viseme_score': np.mean([r['standard']['standard_viseme_score'] for r in all_results]),
-                    'avg_phonetic_distance': np.mean([r['standard']['phonetic_edit_distance'] for r in all_results 
-                                                    if r['standard']['phonetic_edit_distance'] != float('inf')]),
-                    'avg_standard_phoneme_score': np.mean([r['standard']['standard_phoneme_score'] for r in all_results]),
-                },
-                'weighted': {
-                    'avg_viseme_score': np.mean([r['weighted']['viseme_score'] for r in all_results]),
-                    'avg_phonetic_distance': np.mean([r['weighted']['phonetic_edit_distance'] for r in all_results
-                                                    if r['weighted']['phonetic_edit_distance'] != float('inf')]),
-                    'avg_vips_score': np.mean([r['weighted']['vips_score'] for r in all_results]),
-                }
-            }
-            
-            # Calculate difference statistics
-            viseme_score_diffs = [r['weighted']['viseme_score'] - r['standard']['standard_viseme_score'] 
-                          for r in all_results]
-            vips_score_diffs = [r['weighted']['vips_score'] - r['standard']['standard_phoneme_score'] 
-                          for r in all_results]
-            
-            summary['comparison'] = {
-                'avg_viseme_score_difference': np.mean(viseme_score_diffs),
-                'max_viseme_score_improvement': max(viseme_score_diffs),
-                'avg_vips_score_difference': np.mean(vips_score_diffs),
-                'max_vips_score_improvement': max(vips_score_diffs),
-                'percent_viseme_improved': sum(1 for d in viseme_score_diffs if d > 0) / len(viseme_score_diffs) * 100,
-                'percent_viseme_unchanged': sum(1 for d in viseme_score_diffs if d == 0) / len(viseme_score_diffs) * 100,
-                'percent_viseme_worse': sum(1 for d in viseme_score_diffs if d < 0) / len(viseme_score_diffs) * 100,
-                'percent_vips_improved': sum(1 for d in vips_score_diffs if d > 0) / len(vips_score_diffs) * 100,
-                'percent_vips_unchanged': sum(1 for d in vips_score_diffs if d == 0) / len(vips_score_diffs) * 100,
-                'percent_vips_worse': sum(1 for d in vips_score_diffs if d < 0) / len(vips_score_diffs) * 100,
+                'standard_viseme_score': np.mean([r['standard']['standard_viseme_score'] for r in all_results]),
+                'standard_phoneme_score': np.mean([r['standard']['standard_phoneme_score'] for r in all_results]),
+                'vips_score': np.mean([r['weighted']['vips_score'] for r in all_results]),
             }
             
             # Add additional metrics if requested
@@ -1683,29 +1648,13 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 print("\nCalculating additional metrics...")
                 additional_metrics, per_example_metrics = self.calculate_additional_metrics(example_pairs)
                 summary['additional_metrics'] = additional_metrics
-                
-                # Copy the core metrics to summary level
-                for key, value in additional_metrics.items():
-                    summary[key] = value
             
             # Print summary
             print("\n=== ANALYSIS SUMMARY ===")
             print(f"Total examples: {summary['num_examples']}")
-            print("\nStandard approach:")
-            print(f"  Average standard viseme score: {summary['standard']['avg_standard_viseme_score']:.3f}")
-            print(f"  Average standard phoneme score: {summary['standard']['avg_standard_phoneme_score']:.3f}")
-            print(f"  Average phonetic distance: {summary['standard']['avg_phonetic_distance']:.3f}")
-            print("\nWeighted approach:")
-            print(f"  Average viseme score: {summary['weighted']['avg_viseme_score']:.3f}")
-            print(f"  Average ViPS score: {summary['weighted']['avg_vips_score']:.3f}")
-            print(f"  Average phonetic distance: {summary['weighted']['avg_phonetic_distance']:.3f}")
-            print("\nComparison:")
-            print(f"  Average viseme score difference: {summary['comparison']['avg_viseme_score_difference']:.3f}")
-            print(f"  Maximum viseme score improvement: {summary['comparison']['max_viseme_score_improvement']:.3f}")
-            print(f"  Viseme examples improved: {summary['comparison']['percent_viseme_improved']:.1f}%")
-            print(f"  Average ViPS score difference: {summary['comparison']['avg_vips_score_difference']:.3f}")
-            print(f"  Maximum ViPS score improvement: {summary['comparison']['max_vips_score_improvement']:.3f}")
-            print(f"  ViPS examples improved: {summary['comparison']['percent_vips_improved']:.1f}%")
+            print(f"Standard Viseme Score: {summary['standard_viseme_score']:.3f}")
+            print(f"Standard Phoneme Score: {summary['standard_phoneme_score']:.3f}")
+            print(f"ViPS Score: {summary['vips_score']:.3f}")
             
             # Print additional metrics if requested
             if include_all_metrics and 'additional_metrics' in summary:
@@ -1739,12 +1688,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                     json.dump(results_to_save, f, indent=2)
                 
                 print(f"\nSaved analysis results to {output_file}")
-                
-                # Save a separate summary-only file
-                summary_file = os.path.join(os.path.dirname(os.path.abspath(output_file)), 'summary.json')
-                with open(summary_file, 'w') as f:
-                    json.dump(summary, f, indent=2)
-                print(f"Saved summary metrics to {summary_file}")
             
             # Export to CSV if requested
             if export_csv:
@@ -2113,444 +2056,6 @@ def save_examples_to_csv(examples, evaluator, filename="phonetic_examples.csv"):
     except Exception as e:
         print(f"Error saving examples to CSV: {e}")
 
-def save_examples_to_text(examples, evaluator, filename="phonetic_comparisons.txt"):
-    """
-    Save the examples and their evaluations to a readable text file
-    
-    Args:
-        examples: List of example tuples
-        evaluator: LipReadingEvaluator instance to calculate scores
-        filename: Path to save the text file
-    """
-    try:
-        with open(filename, 'w', encoding='utf-8') as f:
-            # Write header with information about the approach
-            f.write("PHONETIC CONFUSION EVALUATION COMPARISONS\n")
-            f.write("========================================\n\n")
-            f.write("This file presents a comprehensive comparison between:\n")
-            f.write("1. Standard approach: Binary viseme/phoneme comparisons\n")
-            f.write("2. Weighted approach: Phonetically-weighted similarity measures\n\n")
-            f.write("Each section groups examples by phonetic confusion type to help\n")
-            f.write("identify patterns where the weighted approach provides advantages.\n\n")
-            f.write("INTERPRETING THE RESULTS:\n")
-            f.write("- Higher scores indicate better matches (1.0 = perfect match, 0.0 = no match)\n")
-            f.write("- 'better' means the weighted approach better models human perception\n")
-            f.write("- Viseme scores reflect visual similarity in lip movements\n")
-            f.write("- Phonetic scores reflect underlying articulatory similarity\n\n")
-            
-            # Group examples by confusion type
-            confusion_types = {}
-            for item in examples:
-                if len(item) >= 3:
-                    confusion_type = item[2]
-                    if confusion_type not in confusion_types:
-                        confusion_types[confusion_type] = []
-                    confusion_types[confusion_type].append(item)
-            
-            # Process each group
-            for confusion_type, items in sorted(confusion_types.items()):
-                # Format the confusion type heading
-                heading = confusion_type.upper().replace('_', ' ')
-                f.write(f"\n{heading} CONFUSIONS\n")
-                f.write(f"{'-' * len(heading + ' CONFUSIONS')}\n")
-                
-                # Add a description of this confusion type
-                description = get_confusion_type_description(confusion_type)
-                f.write(f"{description}\n\n")
-                
-                # Process each example in this group
-                for item in items:
-                    # Unpack values
-                    ref, hyp = item[0], item[1]
-                    description = item[3] if len(item) > 3 else ""
-                    substitutions = item[4] if len(item) > 4 else ""
-                    artic_diff = item[5] if len(item) > 5 else ""
-                    
-                    # Calculate scores
-                    results = evaluator.compare_standard_and_weighted(ref, hyp)
-                    std_viseme = results['standard']['standard_viseme_score']
-                    weighted_viseme = results['weighted']['viseme_score']
-                    std_phonetic = results['standard']['standard_phoneme_score']
-                    weighted_phonetic = results['weighted']['vips_score']
-                    
-                    # Calculate differences
-                    viseme_diff = weighted_viseme - std_viseme
-                    vips_diff = weighted_phonetic - std_phonetic
-                    
-                    # Generate a phoneme transcription
-                    ref_phonemes = ' '.join(evaluator.text_to_phonemes(ref))
-                    hyp_phonemes = ' '.join(evaluator.text_to_phonemes(hyp))
-                    
-                    # Write comparison in a more readable format
-                    f.write(f"Example: '{ref}' → '{hyp}'\n")
-                    if description:
-                        f.write(f"Description: {description}\n")
-                    if substitutions:
-                        f.write(f"Phoneme substitution: {substitutions}\n")
-                    if artic_diff:
-                        f.write(f"Articulatory change: {artic_diff}\n")
-                    
-                    # Add phoneme transcriptions
-                    f.write(f"Reference phonemes: [{ref_phonemes}]\n")
-                    f.write(f"Hypothesis phonemes: [{hyp_phonemes}]\n\n")
-                    
-                    # Format the scores in a table-like format for better readability
-                    f.write(f"{'Metric':<25} {'Standard':<10} {'Weighted':<10} {'Difference':<12} {'Assessment'}\n")
-                    f.write(f"{'-'*25} {'-'*10} {'-'*10} {'-'*12} {'-'*10}\n")
-                    f.write(f"{'Viseme Score':<25} {std_viseme:<10.3f} {weighted_viseme:<10.3f} {viseme_diff:+<12.3f} {'better' if viseme_diff > 0.001 else 'worse' if viseme_diff < -0.001 else 'same'}\n")
-                    f.write(f"{'ViPS Score':<25} {std_phonetic:<10.3f} {weighted_phonetic:<10.3f} {vips_diff:+<12.3f} {'better' if vips_diff > 0.001 else 'worse' if vips_diff < -0.001 else 'same'}\n")
-                    
-                    # Add a brief interpretation if there's a significant difference
-                    if abs(viseme_diff) > 0.05 or abs(vips_diff) > 0.05:
-                        if viseme_diff > 0.05:
-                            f.write("\nAnalysis: The weighted approach significantly improves viseme scoring ")
-                            f.write("by recognizing shared phonetic features that the standard approach misses.\n")
-                        elif viseme_diff < -0.05:
-                            f.write("\nAnalysis: The standard approach scores this example higher than the weighted approach, ")
-                            f.write("suggesting this may be a case where binary comparison is more appropriate.\n")
-                    
-                    f.write("\n" + "-" * 70 + "\n\n")
-            
-            # Add detailed summary statistics
-            f.write("\nSUMMARY STATISTICS\n")
-            f.write("==================\n\n")
-            
-            # Calculate overall stats
-            total_examples = len(examples)
-            viseme_better = 0
-            viseme_worse = 0
-            viseme_same = 0
-            phonetic_better = 0
-            phonetic_worse = 0
-            phonetic_same = 0
-            
-            # Collect differences for more detailed analysis
-            viseme_diffs = []
-            phonetic_diffs = []
-            confusion_type_stats = {}
-            
-            # Calculate overall statistics
-            for item in examples:
-                ref, hyp = item[0], item[1]
-                confusion_type = item[2] if len(item) > 2 else "unknown"
-                
-                # Initialize confusion type stats if not yet seen
-                if confusion_type not in confusion_type_stats:
-                    confusion_type_stats[confusion_type] = {
-                        'count': 0,
-                        'viseme_better': 0,
-                        'viseme_worse': 0,
-                        'viseme_same': 0,
-                        'avg_viseme_diff': 0.0
-                    }
-                
-                # Get scores
-                results = evaluator.compare_standard_and_weighted(ref, hyp)
-                viseme_diff = results['weighted']['viseme_score'] - results['standard']['standard_viseme_score']
-                phonetic_diff = results['weighted']['vips_score'] - results['standard']['standard_phoneme_score']
-                
-                # Collect diffs for later analysis
-                viseme_diffs.append(viseme_diff)
-                phonetic_diffs.append(phonetic_diff)
-                
-                # Update overall counters
-                if viseme_diff > 0.001:  # Using a small threshold to handle floating point issues
-                    viseme_better += 1
-                    confusion_type_stats[confusion_type]['viseme_better'] += 1
-                elif viseme_diff < -0.001:
-                    viseme_worse += 1
-                    confusion_type_stats[confusion_type]['viseme_worse'] += 1
-                else:
-                    viseme_same += 1
-                    confusion_type_stats[confusion_type]['viseme_same'] += 1
-                    
-                if phonetic_diff > 0.001:
-                    phonetic_better += 1
-                elif phonetic_diff < -0.001:
-                    phonetic_worse += 1
-                else:
-                    phonetic_same += 1
-                
-                # Update confusion type stats
-                confusion_type_stats[confusion_type]['count'] += 1
-                confusion_type_stats[confusion_type]['avg_viseme_diff'] += viseme_diff
-            
-            # Finalize average differences for each confusion type
-            for confusion_type in confusion_type_stats:
-                if confusion_type_stats[confusion_type]['count'] > 0:
-                    confusion_type_stats[confusion_type]['avg_viseme_diff'] /= confusion_type_stats[confusion_type]['count']
-            
-            # Calculate overall stats
-            avg_viseme_diff = sum(viseme_diffs) / len(viseme_diffs) if viseme_diffs else 0
-            avg_phonetic_diff = sum(phonetic_diffs) / len(phonetic_diffs) if phonetic_diffs else 0
-            
-            # Find max improvements
-            max_viseme_diff = max(viseme_diffs) if viseme_diffs else 0
-            max_phonetic_diff = max(phonetic_diffs) if phonetic_diffs else 0
-            
-            # Write overall statistics
-            f.write(f"Total examples analyzed: {total_examples}\n\n")
-            
-            f.write("Overall Score Comparison:\n")
-            f.write(f"  Average viseme score improvement:    {avg_viseme_diff:+.3f}\n")
-            f.write(f"  Average phonetic score improvement:  {avg_phonetic_diff:+.3f}\n")
-            f.write(f"  Maximum viseme score improvement:    {max_viseme_diff:+.3f}\n")
-            f.write(f"  Maximum phonetic score improvement:  {max_phonetic_diff:+.3f}\n\n")
-            
-            f.write("Viseme Score Results:\n")
-            f.write(f"  Weighted better: {viseme_better} ({viseme_better/total_examples*100:.1f}%)\n")
-            f.write(f"  Weighted worse:  {viseme_worse} ({viseme_worse/total_examples*100:.1f}%)\n")
-            f.write(f"  No difference:   {viseme_same} ({viseme_same/total_examples*100:.1f}%)\n\n")
-            
-            f.write("Phonetic Score Results:\n")
-            f.write(f"  Weighted better: {phonetic_better} ({phonetic_better/total_examples*100:.1f}%)\n")
-            f.write(f"  Weighted worse:  {phonetic_worse} ({phonetic_worse/total_examples*100:.1f}%)\n")
-            f.write(f"  No difference:   {phonetic_same} ({phonetic_same/total_examples*100:.1f}%)\n\n")
-            
-            # Write per-confusion type analysis
-            f.write("\nRESULTS BY CONFUSION TYPE\n")
-            f.write("=========================\n\n")
-            f.write(f"{'Confusion Type':<25} {'Count':<8} {'Better %':<10} {'Worse %':<10} {'Same %':<10} {'Avg Diff':<10}\n")
-            f.write(f"{'-'*25} {'-'*8} {'-'*10} {'-'*10} {'-'*10} {'-'*10}\n")
-            
-            # Sort by average improvement
-            sorted_types = sorted(confusion_type_stats.items(), 
-                                 key=lambda x: x[1]['avg_viseme_diff'], 
-                                 reverse=True)
-            
-            for confusion_type, stats in sorted_types:
-                count = stats['count']
-                better_pct = stats['viseme_better'] / count * 100 if count > 0 else 0
-                worse_pct = stats['viseme_worse'] / count * 100 if count > 0 else 0
-                same_pct = stats['viseme_same'] / count * 100 if count > 0 else 0
-                avg_diff = stats['avg_viseme_diff']
-                
-                type_name = confusion_type.replace('_', ' ').title()
-                if len(type_name) > 24:
-                    type_name = type_name[:21] + "..."
-                
-                f.write(f"{type_name:<25} {count:<8} {better_pct:<10.1f} {worse_pct:<10.1f} {same_pct:<10.1f} {avg_diff:+<10.3f}\n")
-            
-            # Add conclusion
-            f.write("\nCONCLUSION\n")
-            f.write("==========\n\n")
-            
-            # Generate an appropriate conclusion based on the results
-            if viseme_better > viseme_worse:
-                improvement_pct = (viseme_better - viseme_worse) / total_examples * 100
-                f.write(f"The weighted phonetic approach improves scoring accuracy in {improvement_pct:.1f}% of cases, ")
-                f.write("particularly for confusions involving related phonemes that share articulatory features.\n\n")
-                
-                # Identify most improved confusion types
-                top_types = sorted_types[:3]
-                f.write("Confusion types with greatest improvement:\n")
-                for confusion_type, stats in top_types:
-                    if stats['avg_viseme_diff'] > 0:
-                        type_name = confusion_type.replace('_', ' ').title()
-                        f.write(f"- {type_name}: {stats['avg_viseme_diff']:+.3f} average improvement\n")
-                
-                f.write("\nThis demonstrates that the weighted approach better models human perception ")
-                f.write("of phonetic similarities compared to traditional binary viseme/phoneme comparisons.\n")
-            else:
-                f.write("The analysis shows mixed results, with the weighted approach performing similarly ")
-                f.write("to the standard binary approach. Further refinement of the weighting method may be needed.\n")
-            
-        print(f"Saved enhanced comparison text to {filename}")
-    except Exception as e:
-        print(f"Error saving examples to text file: {e}")
-
-def get_confusion_type_description(confusion_type):
-    """
-    Return a description for each confusion type to be included in the text report
-    """
-    descriptions = {
-        "deletion": "Deletions occur when a phoneme in the reference is omitted in the hypothesis. "
-                    "This can affect viseme scoring as the alignment may shift.",
-                    
-        "insertion": "Insertions occur when additional phonemes appear in the hypothesis. "
-                     "The weighted approach can better handle these by considering context.",
-                     
-        "unrelated_words": "These examples compare completely different words. A sophisticated "
-                           "approach should identify any shared phonetic features despite lexical differences.",
-                           
-        "place_voicing": "Place of articulation confusions with voicing differences (e.g., p/b, t/d, k/g). "
-                         "These consonants share place but differ in voicing, a feature weighted approaches can model.",
-                         
-        "manner_voicing": "Manner of articulation confusions with voicing differences (e.g., f/v, s/z). "
-                          "These share manner but differ in voicing, often with similar visual appearance.",
-                          
-        "manner_place": "Confusions involving changes in both manner and place of articulation. "
-                        "The weighted approach can assess partial similarity in these complex substitutions.",
-                        
-        "manner_change": "Confusions involving a change in manner of articulation while maintaining "
-                         "similar place (e.g., stop vs. fricative at the same place).",
-                         
-        "vowel_frontback": "Confusions between front and back vowels. These are often visually "
-                           "similar but acoustically distinct, a challenge for lip reading.",
-                           
-        "vowel_tenseness": "Confusions between tense and lax vowels (e.g., /i/ vs /ɪ/). "
-                           "These have subtle articulatory differences that weighted scoring can capture.",
-                           
-        "vowel_height": "Confusions involving vowel height differences. Visually similar but "
-                        "phonetically distinct, requiring careful weighting of features.",
-                        
-        "vowel_merger": "Confusions involving vowels that are merged in some dialects. "
-                        "The weighted approach can model dialect-specific similarities.",
-                        
-        "nasal_place": "Confusions between nasal consonants at different places of articulation. "
-                       "These are particularly challenging in visual speech recognition.",
-                       
-        "liquid": "Confusions involving liquid consonants like /r/ and /l/. "
-                  "These have complex articulations that benefit from weighted similarity metrics.",
-                  
-        "liquid_glide": "Confusions between liquid consonants and glides. "
-                        "These share some articulatory features despite different manner classifications.",
-                        
-        "glide": "Confusions between different glides (e.g., /j/ vs /w/). "
-                 "These semi-vowels have subtle visual differences.",
-                 
-        "liquid_cluster": "Confusions in consonant clusters containing liquid consonants. "
-                          "These complex articulations benefit from feature-based analysis.",
-                          
-        "visual_confusion": "These pairs look visually similar despite phonetic differences. "
-                            "A primary target for improved scoring in visual speech recognition.",
-                            
-        "context_fricative": "Fricative confusions in sentence context. Testing how the approach "
-                             "handles these distinctions within realistic speech.",
-                             
-        "context_stop": "Stop consonant confusions in sentence context. These test voicing "
-                        "distinctions in practical scenarios.",
-                        
-        "context_nasal": "Nasal confusions in sentence context. Particularly challenging for "
-                         "visual speech recognition systems.",
-                         
-        "context_liquid": "Liquid consonant confusions in sentence context. Testing how the approach "
-                          "handles these in connected speech.",
-                          
-        "context_multiple": "Multiple related confusions in a single example. Tests the approach's "
-                            "ability to handle multiple error patterns.",
-                            
-        "context_cluster": "Consonant cluster simplifications in context. Common in casual speech "
-                           "and difficult for standard models.",
-                           
-        "sibilant": "Confusions between different sibilant fricatives. These share acoustic "
-                    "properties but may have different visual cues.",
-                    
-        "sibilant_affricate": "Confusions between sibilant fricatives and affricates. "
-                              "Complex articulations that benefit from feature analysis.",
-                              
-        "affricate_fricative": "Confusions between affricates and fricatives. Tests the approach's "
-                               "ability to model the stop component of affricates.",
-                               
-        "sibilant_voicing": "Voicing distinctions among sibilants. These minimal pairs are "
-                            "challenging for visual speech recognition.",
-                            
-        "reduction": "Common phonetic reductions in connected speech. Tests the approach's "
-                     "handling of realistic speech patterns.",
-                     
-        "stop_fricative": "Confusions between stops and fricatives. These involve major manner "
-                          "changes that weighted approaches should detect.",
-                          
-        "fricative_stop": "Confusions from fricatives to stops. The reverse of stop_fricative "
-                          "confusions, testing symmetry of the approach.",
-                          
-        "dental_alveolar": "Confusions between dental and alveolar consonants. These involve "
-                           "subtle place distinctions that are often neutralized.",
-                           
-        "final_consonant": "Word-final consonant confusions. These are often reduced or neutralized "
-                           "in many languages and dialects.",
-                           
-        "vowel_insertion": "Insertion of vowels, often in consonant clusters. Common in non-native "
-                           "speech and certain dialects.",
-                           
-        "vowel_deletion": "Deletion of unstressed vowels. Common in casual speech and certain dialects.",
-                          
-        "l2_dental": "Second language confusion with dental fricatives. Common substitution pattern "
-                     "for non-native English speakers.",
-                     
-        "l2_labiodental": "Second language confusion with labiodental fricatives. Tests the approach's "
-                          "modeling of non-native speech patterns.",
-                          
-        "l2_liquid": "Second language liquid confusion. Common in many language backgrounds.",
-        
-        "l2_glide": "Second language glide confusion. Tests the approach's handling of subtle "
-                    "approximant distinctions.",
-                    
-        "stress_shift": "Changes in lexical stress patterns. These affect vowel quality and duration.",
-        
-        "cluster_reduction": "Simplification of complex consonant clusters. Common in many dialects "
-                             "and casual speech styles.",
-                             
-        "cluster_deletion": "Initial /s/ deletion in consonant clusters. Common in many dialects "
-                            "and difficult for standard models.",
-                            
-        "metathesis": "Consonant metathesis. Testing the approach's ability to handle phonetic changes "
-                      "that involve position exchange.",
-                      
-        "bilabial_confusion": "Bilabial consonant confusion. Testing the approach's ability to distinguish "
-                              "between bilabial stops and nasal consonants.",
-                              
-        "minimal_voicing": "Minimal voicing contrast. Testing the approach's ability to model subtle "
-                           "differences in voicing.",
-                           
-        "lip_ambiguity": "Ambiguous lip position. Testing the approach's ability to distinguish "
-                         "between similar but distinct lip movements.",
-                         
-        "lip_rounding": "Lip rounding contrast. Testing the approach's ability to model subtle "
-                        "differences in lip rounding.",
-                        
-        "lip_aperture": "Lip aperture difference. Testing the approach's ability to model subtle "
-                        "differences in lip opening.",
-                        
-        "real_error": "Common lip reading error. Testing the approach's ability to handle "
-                      "unexpected phonetic changes.",
-                      
-        "syllable_structure": "Syllable structure change. Testing the approach's ability to handle "
-                              "variations in syllable structure.",
-                              
-        "flapping": "Alveolar flapping in American English. Testing the approach's ability to model "
-                    "a specific phonetic feature.",
-                    
-        "l1_interference": "L1 interference (Chinese speakers). Testing the approach's ability to "
-                           "handle phonetic similarities with different phonetic systems.",
-                           
-        "l1_interference": "L1 interference (Japanese speakers). Testing the approach's ability to "
-                           "handle phonetic similarities with different phonetic systems.",
-                           
-        "l1_interference": "L1 interference (Spanish speakers). Testing the approach's ability to "
-                           "handle phonetic similarities with different phonetic systems.",
-                           
-        "casual_speech": "Casual speech reduction. Testing the approach's ability to model "
-                         "informal speech patterns.",
-                         
-        "audiological": "Audiological confusion. Testing the approach's ability to model "
-                        "phonetic differences that are not immediately visible.",
-                        
-        "resyllabification": "Cross-word resyllabification. Testing the approach's ability to "
-                             "handle phonetic changes that occur between words.",
-                             
-        "l2_dental": "Second language confusion with dental fricatives. Common substitution pattern "
-                     "for non-native English speakers.",
-                     
-        "l2_labiodental": "Second language confusion with labiodental fricatives. Tests the approach's "
-                          "modeling of non-native speech patterns.",
-                          
-        "l2_liquid": "Second language liquid confusion. Common in many language backgrounds.",
-        
-        "l2_glide": "Second language glide confusion. Tests the approach's handling of subtle "
-                    "approximant distinctions.",
-                    
-        "stress_shift": "Changes in lexical stress patterns. These affect vowel quality and duration.",
-        
-        "cluster_reduction": "Simplification of complex consonant clusters. Common in many dialects "
-                             "and casual speech styles."
-    }
-    
-    # Return the description if available, or a generic one if not
-    return descriptions.get(confusion_type, 
-                           f"This category examines confusions involving {confusion_type.replace('_', ' ')}. "
-                           f"The weighted approach may show advantages for these patterns.")
-
 def main():
     """Main function for demonstrating and comparing different alignment approaches"""
     import argparse
@@ -2558,19 +2063,24 @@ def main():
     parser = argparse.ArgumentParser(description='Phonetically-Weighted Viseme Scoring')
     parser.add_argument('--json', type=str, help='JSON file with reference-hypothesis pairs')
     parser.add_argument('--weights', type=str, help='Path to save computed weights (will not load from this file)')
-    parser.add_argument('--save_dir', type=str, default='viseme_output', help='Directory to save all outputs (results, plots, weights)')
+    parser.add_argument('--save_dir', type=str, default=None, help='Directory to save all outputs (default: current directory)')
     parser.add_argument('--max_samples', type=int, default=None, help='Maximum number of samples to process')
     parser.add_argument('-all', action='store_true', help='Calculate all metrics including WER, CER, and others')
     parser.add_argument('--csv', action='store_true', help='Export results to CSV file')
     parser.add_argument('--save-examples', action='store_true', help='Save examples to CSV file')
     parser.add_argument('--save-text', action='store_true', help='Save examples to readable text file')
-    parser.add_argument('--weight-method', type=str, choices=['both', 'entropy', 'distinctiveness'], default='both',
-                        help='Method to calculate feature weights: both (default), entropy-only, or distinctiveness-only')
+    parser.add_argument('--weight-method', type=str, choices=['both', 'entropy', 'visual'], default='both',
+                        help='Method to calculate feature weights: both (default), entropy-only, or visual-only')
     parser.add_argument('--compare-methods', action='store_true', help='Compare results using different weight methods')
     args = parser.parse_args()
     
-    # Create output directory if it doesn't exist
-    os.makedirs(args.save_dir, exist_ok=True)
+    # Set up output directory - only create viseme_output if save_dir is not specified
+    if args.save_dir is None:
+        args.save_dir = '.'  # Use current directory as default
+    
+    # Only create directory if it's not the current directory
+    if args.save_dir != '.':
+        os.makedirs(args.save_dir, exist_ok=True)
     
     # Define output paths
     if args.weights:
