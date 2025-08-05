@@ -1,0 +1,7 @@
+Metric,Mean,Std
+ViPS,0.7991,0.0906
+MaFI Score,-0.9941,0.3698
+WER,0.8317,0.2160
+CER,0.6504,0.2476
+BertScore,0.9440,0.0542
+Semantic Similarity,0.4018,0.1669

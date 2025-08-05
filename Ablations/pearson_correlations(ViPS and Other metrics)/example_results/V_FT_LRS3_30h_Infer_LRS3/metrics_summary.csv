@@ -1,0 +1,5 @@
+Metric,Pearson,Rsquared,Pvalue
+WER,-0.8435,0.7114,p<0.001
+CER,-0.8896,0.7914,p<0.001
+BertScore,0.8190,0.6707,p<0.001
+SemanticSimilarity,0.7610,0.5791,p<0.001
