@@ -7,78 +7,92 @@ ViPS is a unified audio-visual analysis framework that evaluates the similarity 
 
 ## ViPS Metric Script Usage (`vips.py`)
 
-The `vips.py` script provides a comprehensive set of tools for evaluating, analyzing, and visualizing audio-visual speech recognition (AVSR) outputs using the ViPS metric and related phonetic/visemic metrics.
+The `vips.py` script provides a comprehensive evaluation framework for analyzing audio-visual speech recognition (AVSR) outputs using the ViPS metric and related phonetic/visemic metrics.
 
-### Main Capabilities
-- Compute ViPS and other metrics (WER, CER, BERTScore, Semantic Similarity) for reference/hypothesis pairs
-- Compare standard and weighted phonetic/visemic scoring
-- Analyze results from JSON datasets
-- Export results to CSV or text
-- Visualize confusion matrices and metric distributions
-- Save and load feature weights
+### Main Features
+- Three-level Scoring System:
+  - Standard Visemic Score (unweighted viseme-based evaluation)
+  - Standard Phonetic Score (unweighted phoneme-based evaluation)
+  - ViPS Score (weighted phonetic evaluation incorporating visual distinctiveness)
+- Comprehensive Metrics Suite:
+  - Core metrics: WER, CER
+  - Advanced metrics: BLEU, ROUGE, METEOR
+  - Deep learning-based metrics: BERTScore, Semantic Similarity
+- Feature Weight Analysis:
+  - Entropy-based weighting
+  - Visual distinctiveness weighting
+  - Combined weighting approach
 
-### Example Usage
+### Quick Start
 
-#### 1. Analyze a JSON file of reference/hypothesis pairs
+#### Basic Usage
 ```bash
 python vips.py --json path/to/data.json --save_dir results_dir
 ```
-This will compute ViPS and related metrics for all pairs in the JSON file and save results in `results_dir`.
+This computes all three scores (Standard Visemic, Standard Phonetic, and ViPS) for all pairs in the JSON file.
 
-#### 2. Compare standard and weighted scoring approaches
+#### Advanced Analysis
 ```bash
-python vips.py --json path/to/data.json --compare --save_dir results_dir
+python vips.py --json path/to/data.json --save_dir results_dir --all --weight-method both
 ```
-Adds a detailed comparison of standard (unweighted) and weighted ViPS metrics for each pair.
+Includes additional metrics and uses both entropy and visual distinctiveness for weighting.
 
-#### 3. Export results to CSV
+#### Feature Weight Analysis
 ```bash
-python vips.py --json path/to/data.json --csv --save_dir results_dir
+python vips.py --json path/to/data.json --save_dir results_dir --weight-method entropy
 ```
-Saves detailed per-example results in CSV format for further analysis.
+Uses entropy-only weighting for feature analysis.
 
-#### 4. Save feature weights to a file
-```bash
-python vips.py --json path/to/data.json --weights path/to/weights.json --save_dir results_dir
-```
-Saves the computed feature weights and viseme similarity matrix for reuse or inspection.
-
-#### 5. Visualize confusion matrices and metric distributions
-```bash
-python vips.py --json path/to/data.json --save_dir results_dir
-# After running, check the results_dir for PNG plots and summary files.
-```
-
-#### 6. Run ablation or method comparison
-```bash
-python vips.py --json path/to/data.json --save_dir results_dir
-```
-Compares different feature weighting methods (entropy, distinctiveness, both).
-
-#### 7. Save example analyses to text or CSV
-```bash
-python vips.py --json path/to/data.json --save-examples --save-text --save_dir results_dir
-```
-Saves detailed example-by-example analysis in both text and CSV formats.
-
-### Arguments
-- `--json`: Path to a JSON file with reference/hypothesis pairs (required for most analyses)
-- `--weights`: Path to save computed feature weights (optional)
-- `--save_dir`: Directory to save all outputs (default: `viseme_output`)
-- `--max_samples`: Limit the number of samples processed (optional)
-- `--compare`: Run detailed comparison of standard vs. weighted scoring
-- `--csv`: Export results to CSV
-- `--save-examples`: Save example analyses to CSV
-- `--save-text`: Save example analyses to text
-- `--weight-method`: Choose feature weighting method (`both`, `entropy`, `distinctiveness`)
+### Command Line Arguments
+- `--json`: Path to JSON file containing reference-hypothesis pairs
+- `--save_dir`: Directory to save outputs (default: current directory)
+- `--all`: Calculate additional metrics (WER, CER, BLEU, ROUGE, etc.)
+- `--save-text`: Save detailed analysis in human-readable format
+- `--weight-method`: Feature weighting method (`both`, `entropy`, `visual`)
 
 ### Output Files
-- `results.json`: Full results for all pairs
-- `metrics.txt`: Summary of computed metrics
-- `phonetic_examples.csv`: Per-example analysis
-- `phonetic_comparisons.txt`: Readable text report of example analyses
-- `feature_weights.json`/`feature_weights_table.txt`: Feature weights and analysis
-- PNG plots: Confusion matrices and metric visualizations
+1. `results.json`: Complete evaluation results including:
+   - Summary statistics
+   - Per-example scores
+   - Additional metrics (if requested)
+2. `vips_weights.json`: Feature weights and analysis details:
+   - Feature entropies
+   - Visual distinctiveness scores
+
+
+### Input JSON Format
+The script accepts multiple JSON formats:
+
+1. List of Dictionaries:
+```json
+[
+    {
+        "reference": "example one",
+        "hypothesis": "example won"
+    },
+    {
+        "reference": "test two",
+        "hypothesis": "test too"
+    }
+]
+```
+
+2. Parallel Lists:
+```json
+{
+    "ref": ["example one", "test two"],
+    "hypo": ["example won", "test too"]
+}
+```
+
+3. Single Pair:
+```json
+{
+    "reference": "example text",
+    "hypothesis": "example test"
+}
+```
+
 
 ### Notes
 - The script requires dependencies listed in `requirements.txt` (see installation instructions above).

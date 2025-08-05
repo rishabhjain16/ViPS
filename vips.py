@@ -1139,14 +1139,13 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         
         return metrics, per_example_metrics
     
-    def analyze_json_dataset_with_comparisons(self, json_file, output_file=None, max_samples=None, include_all_metrics=False):
+    def analyze_json_dataset_with_comparisons(self, json_file, output_file=None, include_all_metrics=False):
         """
         Analyze a dataset with both standard and weighted approaches for comparison
         
         Parameters:
         - json_file: Path to JSON file with reference-hypothesis pairs
         - output_file: Path to save analysis results (optional)
-        - max_samples: Maximum number of samples to process (default: all)
         - include_all_metrics: Whether to include additional metrics
         
         Returns:
@@ -1209,11 +1208,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             if not example_pairs:
                 print("Could not extract reference-hypothesis pairs from the JSON file.")
                 return None
-            
-            # Limit number of samples if specified
-            if max_samples is not None and len(example_pairs) > max_samples:
-                print(f"Limiting analysis to {max_samples} samples (out of {len(example_pairs)} total)")
-                example_pairs = example_pairs[:max_samples]
             
             print(f"Processing {len(example_pairs)} reference-hypothesis pairs")
             
@@ -1335,9 +1329,7 @@ def main():
     
     parser = argparse.ArgumentParser(description='Phonetically-Weighted Viseme Scoring')
     parser.add_argument('--json', type=str, help='JSON file with reference-hypothesis pairs')
-    parser.add_argument('--weights', type=str, help='Path to save computed weights (will not load from this file)')
     parser.add_argument('--save_dir', type=str, default=None, help='Directory to save all outputs (default: current directory)')
-    parser.add_argument('--max_samples', type=int, default=None, help='Maximum number of samples to process')
     parser.add_argument('--all', action='store_true', help='Calculate all metrics including WER, CER, and others')
     parser.add_argument('--save-text', action='store_true', help='Save examples to readable text file')
     parser.add_argument('--weight-method', type=str, choices=['both', 'entropy', 'visual'], default='both',
@@ -1351,16 +1343,8 @@ def main():
     # Only create directory if it's not the current directory
     if args.save_dir != '.':
         os.makedirs(args.save_dir, exist_ok=True)
-    
-    # Define output paths
-    if args.weights:
-        weights_path = args.weights
-    else:
-        method_suffix = f"_{args.weight_method}" if args.weight_method != "both" else ""
-        weights_path = os.path.join(args.save_dir, f'viseme_weights{method_suffix}.json')
-    
-    results_path = os.path.join(args.save_dir, f'results{method_suffix}.json')
-    comparison_text_path = os.path.join(args.save_dir, f'phonetic_comparisons{method_suffix}.txt')
+
+    results_path = os.path.join(args.save_dir, f'results.json')
     
     # Create weighted evaluator with the specified weight method
     evaluator = WeightedLipReadingEvaluator(weight_method=args.weight_method)
@@ -1370,7 +1354,6 @@ def main():
         results = evaluator.analyze_json_dataset_with_comparisons(
             args.json, 
             output_file=results_path,
-            max_samples=args.max_samples,
             include_all_metrics=args.all
         )
         
