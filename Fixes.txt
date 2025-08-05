@@ -1,6 +1,0 @@
-
-
-ADD Mafi Analysis scriprs from Scripts folder
-
-
-Remove figures etc from other folders for Weighted Stuff

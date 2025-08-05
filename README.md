@@ -99,13 +99,13 @@ The script accepts multiple JSON formats:
 - Input JSON can be a list of dicts or a dict with `ref` and `hypo` lists.
 - For custom analyses, see the script's help: `python vips.py --help`
 
+### Additional Scripts and Analyses
+ViPS is used in various ways throughout this repository for different types of analyses. Each directory contains its own scripts and README with detailed instructions:
 
-#### Note on Terminology in Folders and Ablations
+- `MaFi/`: Scripts for calculating MaFi scores and correlations with ViPS
+- `Ablations/`: Analysis of AVSR model comparisons and SNR impacts
+- `Additional_llm_exp/`: Comparisons between AV-Hubert and VSP-LLM models
+- `avsr_decoded_outputs/`: Processing and evaluation of AVSR model outputs
 
-In some added folders and ablation experiments, you may find references to ViPS as "WVS" or "WPS." These were earlier names used before we finalized the term "ViPS," while we were exploring different ablation settings and experimental variations. All such references correspond to the current ViPS metric.
+Each directory includes specific documentation and example usage in its README file.
 
-**Weighted Phonetic Score (WPS):**
-The Weighted Phonetic Score quantifies the similarity between reference and hypothesis transcriptions by considering the articulatory and phonetic features of each phoneme. 
-
-**Weighted Visemic Score (WVS):**
-It is slightly different from WPS as the Weighted Visemic Score measures the similarity between reference and hypothesis transcriptions based on visual speech features (visemes). which were mapped using WPS as done in ViPS.
