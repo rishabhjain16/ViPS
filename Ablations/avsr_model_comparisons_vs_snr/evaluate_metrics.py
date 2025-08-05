@@ -53,14 +53,10 @@ def get_cached_evaluator(cache_dir='cache'):
     return evaluator
 
 def calculate_wer(reference, hypothesis):
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", message="words count mismatch")
-        return jiwer.wer(reference, hypothesis)
+    return jiwer.wer(reference, hypothesis)
 
 def calculate_cer(reference, hypothesis):
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", message="words count mismatch")
-        return jiwer.cer(reference, hypothesis)
+    return jiwer.cer(reference, hypothesis)
 
 def get_bert_model():
     """Cache BERT model and tokenizer"""

@@ -22,35 +22,25 @@ def calculate_snr_gains(df, reference_snr=0.0):
     
     for model in models:
         model_data = df[df['Model'] == model]
-        
-        # Get reference values at 0dB for AO
-        ref_values = {}
         for metric in metrics:
+            # Get reference value at 0dB for AO
             ref_value = model_data[(model_data['Modality'] == 'AO') & 
                                  (model_data['SNR'] == reference_snr)][metric].iloc[0]
-            ref_values[metric] = ref_value
-        
-        # Calculate gains for AV modality
-        for metric in metrics:
-            ao_data = model_data[model_data['Modality'] == 'AO']
+            
+            # Get AV data for interpolation
             av_data = model_data[model_data['Modality'] == 'AV']
+            av_data = av_data.sort_values('SNR')
             
-            # Sort by SNR
-            ao_snrs = ao_data['SNR'].values
-            ao_values = ao_data[metric].values
-            av_snrs = av_data['SNR'].values
-            av_values = av_data[metric].values
-            
-            # Find SNR level where AV achieves the same performance as AO at 0dB
-            av_snr = interpolate_snr_level(av_snrs, av_values, ref_values[metric])
+            # Find SNR gain
+            av_snr = interpolate_snr_level(av_data['SNR'].values, 
+                                         av_data[metric].values, 
+                                         ref_value)
             
             if not np.isnan(av_snr):
-                gain = reference_snr - av_snr
                 gains.append({
                     'Model': model,
                     'Metric': metric,
-                    'SNR_Gain': gain,
-                    'Reference_Value': ref_values[metric]
+                    'SNR_Gain': 0 - av_snr
                 })
     
     return pd.DataFrame(gains)
@@ -61,9 +51,9 @@ def plot_combined_metrics(df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
     models = df['Model'].unique()
@@ -76,9 +66,9 @@ def plot_combined_metrics(df, output_dir):
     
     # Define professional color scheme
     colors = {
-        'avec': '#1f77b4',      # Blue
-        'AV_relscore': '#2ca02c',  # Green
-        'auto-avsr': '#ff7f0e'   # Orange
+        'AVEC': '#1f77b4',      # Blue
+        'AV_Relscore': '#2ca02c',  # Green
+        'Auto-AVSR': '#ff7f0e'   # Orange
     }
     
     # Create figure with custom gridspec - reduced height
@@ -192,9 +182,9 @@ def plot_snr_curves(df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
     # Set style
@@ -205,9 +195,9 @@ def plot_snr_curves(df, output_dir):
     
     # Define professional color scheme
     colors = {
-        'avec': '#1f77b4',      # Blue
-        'AV_relscore': '#2ca02c',  # Green
-        'auto-avsr': '#ff7f0e'   # Orange
+        'AVEC': '#1f77b4',      # Blue
+        'AV_Relscore': '#2ca02c',  # Green
+        'Auto-AVSR': '#ff7f0e'   # Orange
     }
     
     for metric in metrics:
@@ -312,13 +302,12 @@ def plot_snr_gains(gains_df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
-    # Update model names in the dataframe
-    gains_df['Model'] = gains_df['Model'].map(model_display_names)
+    # No need to map model names since they're already correct
     
     # Define professional color scheme for metrics
     metric_colors = {
@@ -362,9 +351,9 @@ def plot_metric_values_with_labels(df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
     # Set style
@@ -375,9 +364,9 @@ def plot_metric_values_with_labels(df, output_dir):
     
     # Define professional color scheme
     colors = {
-        'avec': '#1f77b4',      # Blue
-        'AV_relscore': '#2ca02c',  # Green
-        'auto-avsr': '#ff7f0e'   # Orange
+        'AVEC': '#1f77b4',      # Blue
+        'AV_Relscore': '#2ca02c',  # Green
+        'Auto-AVSR': '#ff7f0e'   # Orange
     }
     
     for metric in metrics:
@@ -464,9 +453,9 @@ def plot_combined_metrics_with_labels(df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
     models = df['Model'].unique()
@@ -479,9 +468,9 @@ def plot_combined_metrics_with_labels(df, output_dir):
     
     # Define professional color scheme
     colors = {
-        'avec': '#1f77b4',      # Blue
-        'AV_relscore': '#2ca02c',  # Green
-        'auto-avsr': '#ff7f0e'   # Orange
+        'AVEC': '#1f77b4',      # Blue
+        'AV_Relscore': '#2ca02c',  # Green
+        'Auto-AVSR': '#ff7f0e'   # Orange
     }
     
     # Create figure with custom gridspec
@@ -584,9 +573,9 @@ def plot_selected_metrics_vertical(df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
     models = df['Model'].unique()
@@ -599,9 +588,9 @@ def plot_selected_metrics_vertical(df, output_dir):
     
     # Define professional color scheme
     colors = {
-        'avec': '#1f77b4',      # Blue
-        'AV_relscore': '#2ca02c',  # Green
-        'auto-avsr': '#ff7f0e'   # Orange
+        'AVEC': '#1f77b4',      # Blue
+        'AV_Relscore': '#2ca02c',  # Green
+        'Auto-AVSR': '#ff7f0e'   # Orange
     }
     
     # Create figure with 3 rows, 1 column
@@ -736,13 +725,13 @@ def plot_selected_metrics_horizontal(df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
     # Define the order of models for display
-    model_order = ['auto-avsr', 'AV_relscore', 'avec']
+    model_order = ['Auto-AVSR', 'AV_Relscore', 'AVEC']
     
     # Set style
     sns.set_style("whitegrid")
@@ -752,9 +741,9 @@ def plot_selected_metrics_horizontal(df, output_dir):
     
     # Define professional color scheme
     colors = {
-        'avec': '#1f77b4',      # Blue
-        'AV_relscore': '#2ca02c',  # Green
-        'auto-avsr': '#ff7f0e'   # Orange
+        'AVEC': '#1f77b4',      # Blue
+        'AV_Relscore': '#2ca02c',  # Green
+        'Auto-AVSR': '#ff7f0e'   # Orange
     }
     
     # Calculate SNR gains for all models and metrics
@@ -925,13 +914,13 @@ def plot_selected_metrics_horizontal_no_labels(df, output_dir):
     
     # Create a mapping for display names
     model_display_names = {
-        'avec': 'AVEC',
-        'AV_relscore': 'AV-RelScore',
-        'auto-avsr': 'Auto-AVSR'
+        'AVEC': 'AVEC',
+        'AV_Relscore': 'AV-RelScore',
+        'Auto-AVSR': 'Auto-AVSR'
     }
     
     # Define the order of models for display
-    model_order = ['auto-avsr', 'AV_relscore', 'avec']
+    model_order = ['Auto-AVSR', 'AV_Relscore', 'AVEC']
     
     # Set style
     sns.set_style("whitegrid")
@@ -941,9 +930,9 @@ def plot_selected_metrics_horizontal_no_labels(df, output_dir):
     
     # Define professional color scheme
     colors = {
-        'avec': '#1f77b4',      # Blue
-        'AV_relscore': '#2ca02c',  # Green
-        'auto-avsr': '#ff7f0e'   # Orange
+        'AVEC': '#1f77b4',      # Blue
+        'AV_Relscore': '#2ca02c',  # Green
+        'Auto-AVSR': '#ff7f0e'   # Orange
     }
     
     # Calculate SNR gains for all models and metrics

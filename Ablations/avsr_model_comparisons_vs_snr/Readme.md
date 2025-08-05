@@ -4,7 +4,7 @@
 This folder provides a pipeline to evaluate ASR (Automatic Speech Recognition) outputs from different models and analyze their performance across SNR (Signal-to-Noise Ratio) conditions using two main scripts:
 
 1. `evaluate_metrics.py` — Computes evaluation metrics for each model, modality, and SNR.
-2. `analyze_snr.py` — Analyzes and visualizes the effect of SNR on these metrics.
+2. `analyze_snr.py` — Analyzes and visualizes the effect of SNR/SNR Gains on these metrics.
 
 ## Directory Structure
 
@@ -70,7 +70,7 @@ This script computes the following metrics for each model, modality, and SNR:
 
 ## Step 2: SNR Analysis and Visualization (`analyze_snr.py`)
 
-This script analyzes the effect of SNR on the computed metrics and generates visualizations and summary statistics.
+This script analyzes the effect of SNR on the computed metrics and generates comprehensive visualizations and summary statistics. It provides detailed insights into how different AVSR models perform across various noise conditions.
 
 ### Usage
 1. **Ensure `all_metrics.csv` is present** (from the previous step).
@@ -79,9 +79,12 @@ This script analyzes the effect of SNR on the computed metrics and generates vis
    python analyze_snr.py
    ```
 
-3. **Outputs:**
-   - Plots and summary CSVs are saved in a new folder `snr_analysis/`.
-   - Includes SNR gain plots, metric curves, and combined visualizations for all models and metrics.
+3. **Review Results:**
+   - All visualizations are saved in the `snr_analysis/` folder
+   - Summary statistics are printed to console, showing:
+     - Average SNR gains for each model and metric
+     - Best performing models for each metric
+     - Detailed performance comparisons
 
 ## Workflow Summary
 
