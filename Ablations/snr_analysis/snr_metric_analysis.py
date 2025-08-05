@@ -6,8 +6,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import logging
+
+# Configure logging to suppress phonemizer warnings
+logging.getLogger('phonemizer').setLevel(logging.ERROR)
 from collections import defaultdict
-from vis_phon import WeightedLipReadingEvaluator
+from tqdm import tqdm
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
+from vips import WeightedLipReadingEvaluator
 
 class SNRMetricAnalyzer:
     """Analyzer for comparing lip reading metrics across different SNR levels"""
@@ -36,74 +43,30 @@ class SNRMetricAnalyzer:
             print(f"Found {len(pairs)} reference-hypothesis pairs")
             
             results = []
-            total_pairs = len(pairs)
             snr_level_str = str(snr_level)
             
-            # Initialize BERTScore
-            bertscore_results = None
-            try:
-                import bert_score
-                print("Initializing BERTScore model...")
-                references = [ref for ref, _ in pairs]
-                hypotheses = [hyp for _, hyp in pairs]
-                P, R, F1 = bert_score.score(hypotheses, references, lang="en", rescale_with_baseline=True)
-                bertscore_results = {
-                    'f1': F1.cpu().numpy()
-                }
-                print("BERTScore calculation complete.")
-            except Exception as e:
-                print(f"Could not calculate BERTScore: {e}")
+            # Calculate additional metrics first
+            metrics, per_example_metrics = self.evaluator.calculate_additional_metrics(pairs)
             
-            # Calculate semantic similarity
-            semantic_similarities = []
-            try:
-                from sentence_transformers import SentenceTransformer
-                print("Calculating semantic similarities...")
-                model = SentenceTransformer('all-MiniLM-L6-v2')
-                references = [ref for ref, _ in pairs]
-                hypotheses = [hyp for _, hyp in pairs]
-                ref_embeddings = model.encode(references)
-                hyp_embeddings = model.encode(hypotheses)
-                
-                for i in range(len(references)):
-                    ref_emb = ref_embeddings[i]
-                    hyp_emb = hyp_embeddings[i]
-                    ref_norm = np.linalg.norm(ref_emb)
-                    hyp_norm = np.linalg.norm(hyp_emb)
-                    
-                    if ref_norm > 0 and hyp_norm > 0:
-                        similarity = np.dot(ref_emb, hyp_emb) / (ref_norm * hyp_norm)
-                        semantic_similarities.append(float(similarity))
-                    else:
-                        semantic_similarities.append(0.0)
-                print("Semantic similarity calculation complete.")
-            except Exception as e:
-                print(f"Could not calculate semantic similarities: {e}")
-                semantic_similarities = [0.0] * len(pairs)
-            
-            for i, (ref, hyp) in enumerate(pairs):
-                if i % 10 == 0:
-                    print(f"Processing pair {i+1}/{total_pairs}...")
-                
-                comparison = self.evaluator.compare_standard_and_weighted(ref, hyp)
-                metrics = self._calculate_basic_metrics(ref, hyp)
+            # Process pairs with progress bar
+            for i, (ref, hyp) in enumerate(tqdm(pairs, desc=f"Processing SNR {snr_level}")):
+                # Get ViPS score from evaluator
+                eval_results = self.evaluator.evaluate_pair(ref, hyp)
                 
                 result = {
                     'reference': ref,
                     'hypothesis': hyp,
                     'snr': snr_level_str,
-                    'ViPS': comparison['weighted']['phonetically_weighted_viseme_score'],
-                    'wer': metrics['wer'],
-                    'cer': metrics['cer'],
-                    'semantic_similarity': semantic_similarities[i] if i < len(semantic_similarities) else 0.0
+                    'ViPS': eval_results['vips_score'],
+                    'wer': per_example_metrics[i]['wer'],
+                    'cer': per_example_metrics[i]['cer'],
+                    'semantic_similarity': per_example_metrics[i]['semantic_similarity'],
+                    'bertscore': per_example_metrics[i]['bertscore_f1']
                 }
-                
-                # Add BERTScore if available
-                if bertscore_results is not None:
-                    result['bertscore'] = float(bertscore_results['f1'][i])
                 
                 results.append(result)
                 self.combined_data.append(result)
+            
             
             summary = self._calculate_summary_stats(results)
             self.snr_results[snr_level_str] = {
@@ -147,57 +110,6 @@ class SNRMetricAnalyzer:
                 pairs = list(zip(data['ground_truth'], data['prediction']))
         
         return pairs
-    
-    def _calculate_basic_metrics(self, reference, hypothesis):
-        """Calculate basic metrics for a reference-hypothesis pair"""
-        import nltk
-        from difflib import SequenceMatcher
-        
-        try:
-            nltk.data.find('tokenizers/punkt')
-        except LookupError:
-            nltk.download('punkt', quiet=True)
-        
-        metrics = {}
-        
-        ref_words = reference.split()
-        hyp_words = hypothesis.split()
-        if ref_words:
-            word_error = nltk.edit_distance(ref_words, hyp_words)
-            metrics['wer'] = word_error / len(ref_words)
-        else:
-            metrics['wer'] = 1.0 if hyp_words else 0.0
-        
-        if reference:
-            char_error = nltk.edit_distance(reference, hypothesis)
-            metrics['cer'] = char_error / len(reference)
-        else:
-            metrics['cer'] = 1.0 if hypothesis else 0.0
-        
-        metrics['word_similarity'] = SequenceMatcher(None, reference, hypothesis).ratio()
-        
-        try:
-            from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
-            if ref_words:
-                smoothie = SmoothingFunction().method1
-                metrics['bleu1'] = sentence_bleu([ref_words], hyp_words, 
-                                              weights=(1, 0, 0, 0),
-                                              smoothing_function=smoothie)
-            else:
-                metrics['bleu1'] = 0.0
-        except:
-            metrics['bleu1'] = 0.0
-            
-        try:
-            from nltk.translate.meteor_score import meteor_score
-            if ref_words:
-                metrics['meteor'] = meteor_score([ref_words], hyp_words)
-            else:
-                metrics['meteor'] = 0.0
-        except:
-            metrics['meteor'] = 0.0
-            
-        return metrics
     
     def _calculate_summary_stats(self, results):
         """Calculate summary statistics for a set of results"""
@@ -243,50 +155,12 @@ class SNRMetricAnalyzer:
         df['snr_float'] = df['snr'].astype(float)  # Convert to float for proper sorting
         snr_labels = sorted(df['snr'].unique(), key=float)  # Sort numerically
         
-        # 1. Create correlation heatmap
-        self._create_correlation_heatmap(df, comparison_metrics, snr_labels)
-        
-        # 2. Create R-squared heatmap
-        self._create_r_squared_heatmap(df, comparison_metrics, snr_labels)
-        
-        # 3. Create line plots for metric values
+        # Create line plots for metric values
         self._create_metric_line_plots(df, comparison_metrics, snr_labels)
         
-        # 4. Create combined correlation and R-squared plot
+        # Create combined correlation and R-squared plot
         self._create_combined_analysis_plot(df, comparison_metrics, snr_labels)
 
-    def _create_correlation_heatmap(self, df, comparison_metrics, snr_labels):
-        """Create correlation heatmap between ViPS and other metrics"""
-        correlation_data = []
-        
-        for snr in snr_labels:
-            snr_df = df[df['snr'] == snr]
-            for metric, title in comparison_metrics:
-                corr = snr_df['ViPS'].corr(snr_df[metric])
-                correlation_data.append({
-                    'SNR': float(snr),  # Convert to float for proper sorting
-                    'Metric': title,
-                    'Correlation': corr
-                })
-        
-        corr_df = pd.DataFrame(correlation_data)
-        corr_matrix = corr_df.pivot(index='Metric', columns='SNR', values='Correlation')
-        # Sort columns numerically
-        corr_matrix = corr_matrix.reindex(columns=sorted(corr_matrix.columns, key=float))
-        
-        plt.figure(figsize=(12, 8))
-        sns.heatmap(corr_matrix, annot=True, cmap='RdBu_r', vmin=-1, vmax=1, center=0,
-                   fmt='.2f', annot_kws={"size": 15})
-        plt.title('Correlation between ViPS and Other Metrics Across SNR Levels', fontsize=19)
-        plt.xlabel('SNR Level (dB)', fontsize=18)
-        plt.ylabel('Metric', fontsize=18)
-        plt.xticks(fontsize=16)
-        plt.yticks(fontsize=16)
-        plt.legend(fontsize=19)
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'vips_correlation_heatmap.png'), dpi=300)
-        plt.close()
-            
     def _calculate_r_squared(self, x, y):
         """Safely calculate R-squared value with error handling"""
         try:
@@ -326,43 +200,6 @@ class SNRMetricAnalyzer:
         except Exception as e:
             print(f"Error calculating R-squared: {e}")
             return np.nan
-
-    def _create_r_squared_heatmap(self, df, comparison_metrics, snr_labels):
-        """Create R-squared heatmap between ViPS and other metrics"""
-        r_squared_data = []
-        
-        for snr in snr_labels:
-            snr_df = df[df['snr'] == snr]
-            for metric, title in comparison_metrics:
-                # Calculate R-squared
-                x = snr_df[metric].values
-                y = snr_df['ViPS'].values
-                r_squared = self._calculate_r_squared(x, y)
-                
-                r_squared_data.append({
-                    'SNR': float(snr),  # Convert to float for proper sorting
-                        'Metric': title,
-                    'R_squared': r_squared
-                })
-        
-        r2_df = pd.DataFrame(r_squared_data)
-        r2_matrix = r2_df.pivot(index='Metric', columns='SNR', values='R_squared')
-        # Sort columns numerically
-        r2_matrix = r2_matrix.reindex(columns=sorted(r2_matrix.columns, key=float))
-        
-        plt.figure(figsize=(12, 8))
-        sns.heatmap(r2_matrix, annot=True, cmap='YlOrRd', vmin=0, vmax=1,
-                   fmt='.2f', annot_kws={"size": 15})
-        
-        plt.title('R² Values between ViPS and Other Metrics Across SNR Levels', fontsize=19)
-        plt.xlabel('SNR Level (dB)', fontsize=18)
-        plt.ylabel('Metric', fontsize=18)
-        plt.xticks(fontsize=16)
-        plt.yticks(fontsize=16)
-        plt.legend(fontsize=19)
-        plt.tight_layout()
-        plt.savefig(os.path.join(self.output_dir, 'vips_r_squared_heatmap.png'), dpi=300)
-        plt.close()
         
     def _create_metric_line_plots(self, df, comparison_metrics, snr_labels):
         """Create line plots showing metric values across SNR levels"""
@@ -575,11 +412,6 @@ class SNRMetricAnalyzer:
         with open(summary_file, 'w') as f:
             json.dump(summary_data, f, indent=2)
         print(f"Saved summary across SNR levels to {summary_file}")
-        
-        if self.combined_data:
-            csv_file = os.path.join(self.output_dir, 'all_metrics.csv')
-            pd.DataFrame(self.combined_data).to_csv(csv_file, index=False)
-            print(f"Saved all metrics to {csv_file}")
 
 
 def main():

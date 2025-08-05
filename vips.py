@@ -3,6 +3,12 @@ import os
 import json
 import numpy as np
 import math
+import logging
+import warnings
+# Configure logging to suppress all relevant warnings
+logging.getLogger('phonemizer').setLevel(logging.ERROR)
+logging.getLogger('transformers').setLevel(logging.ERROR)
+warnings.filterwarnings('ignore', category=UserWarning)
 from collections import Counter, defaultdict
 from itertools import chain
 import matplotlib.pyplot as plt  # Kept for possible use elsewhere
@@ -46,10 +52,14 @@ class LipReadingEvaluator:
             from phonemizer.separator import Separator
             from phonemizer.backend import EspeakBackend
             
-            # Create backend instance
+            # Create backend instance with logger disabled
             self.phonemize = phonemize
             self.separator = Separator(word=' ', phone='')
-            self.phonemizer_backend = EspeakBackend('en-us', with_stress=False)
+            self.phonemizer_backend = EspeakBackend('en-us', with_stress=False, logger=logging.getLogger('null'))
+            # Create a null logger to suppress warnings
+            null_logger = logging.getLogger('null')
+            null_logger.addHandler(logging.NullHandler())
+            null_logger.propagate = False
         except ImportError:
             print("ERROR: phonemizer library is required for IPA conversion")
             print("Install with: pip install phonemizer")
@@ -557,11 +567,14 @@ class LipReadingEvaluator:
             
         processed_phonemes = []
         
-        # Get raw IPA string and split by words
-        raw_phonemes = self.phonemizer_backend.phonemize(
-            [normalized_text], 
-            separator=self.separator
-        )[0]
+        # Temporarily disable warnings during phonemization
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # Get raw IPA string and split by words
+            raw_phonemes = self.phonemizer_backend.phonemize(
+                [normalized_text], 
+                separator=self.separator
+            )[0]
         raw_words = raw_phonemes.split()
         
         # Process word by word
