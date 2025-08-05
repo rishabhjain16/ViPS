@@ -594,74 +594,8 @@ class LipReadingEvaluator:
                     i += 1
         
         return processed_phonemes
-    
-    def evaluate_pair(self, reference, hypothesis):
-        """
-        Evaluate a single reference-hypothesis pair for phonetic and viseme similarity
-        
-        Parameters:
-        - reference: Reference text (ground truth)
-        - hypothesis: Hypothesis text (predicted)
-        
-        Returns:
-        - Dictionary with evaluation results
-        """
-        # Normalize texts first
-        normalized_reference = self.normalize_text(reference)
-        normalized_hypothesis = self.normalize_text(hypothesis)
-        
-        # Convert texts to phoneme sequences
-        try:
-            ref_phonemes = self.text_to_phonemes(normalized_reference)
-            hyp_phonemes = self.text_to_phonemes(normalized_hypothesis)        
-            
-            # Calculate phonetic alignment and edit distance
-            alignment, edit_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=False)
-            
-            # Convert phonemes to visemes using most appropriate mapping
-            ref_visemes = [self.map_phoneme_to_viseme(p) for p in ref_phonemes]
-            hyp_visemes = [self.map_phoneme_to_viseme(p) for p in hyp_phonemes]
-            
-            # Calculate viseme-level alignment and score
-            viseme_alignment, viseme_edit_distance = self.calculate_viseme_alignment(ref_visemes, hyp_visemes)
-            
-            # Normalize viseme score (lower is better, convert to higher is better)
-            max_len = max(len(ref_visemes), len(hyp_visemes))
-            if max_len > 0:
-                viseme_score = 1.0 - (viseme_edit_distance / max_len)
-            else:
-                viseme_score = 1.0
-            
-            # Store original texts and results
-            results = {
-                'reference': reference,
-                'hypothesis': hypothesis,
-                'ref_phonemes': ref_phonemes,
-                'hyp_phonemes': hyp_phonemes,
-                'phonetic_alignment': alignment,
-                'phonetic_edit_distance': edit_distance,
-                'ref_visemes': ref_visemes,
-                'hyp_visemes': hyp_visemes,
-                'viseme_alignment': viseme_alignment,
-                'viseme_edit_distance': viseme_edit_distance,
-                'viseme_score': viseme_score,
-            }
-            
-            return results
-            
-        except Exception as e:
-            print(f"  ERROR in evaluate_pair: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            # Return a minimal result to avoid crashing
-            return {
-                'reference': reference,
-                'hypothesis': hypothesis,
-                'error': str(e),
-                'viseme_score': 0.0,
-                'phonetic_edit_distance': float('inf'),
-            }
 
+        
     def map_phoneme_to_viseme(self, phoneme, default_value=None):
         """
         Map a phoneme to its corresponding viseme using direct mapping.
@@ -863,57 +797,50 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         Returns:
             dict: Evaluation results with all three scores
         """
-        # Store original weighted setting
-        original_setting = self.use_weighted_distance
+
         
         try:
-            # Normalize texts
+            # Normalize texts and convert to phonemes
             normalized_reference = self.normalize_text(reference)
             normalized_hypothesis = self.normalize_text(hypothesis)
-            
-            # Convert to phonemes (do this only once)
             ref_phonemes = self.text_to_phonemes(normalized_reference)
             hyp_phonemes = self.text_to_phonemes(normalized_hypothesis)
             
-            # Convert to visemes (do this only once)
+            # Convert to visemes
             ref_visemes = [self.map_phoneme_to_viseme(p) for p in ref_phonemes]
             hyp_visemes = [self.map_phoneme_to_viseme(p) for p in hyp_phonemes]
             
-            # Get lengths for normalization
-            max_viseme_len = max(len(ref_visemes), len(hyp_visemes))
-            max_phoneme_len = max(len(ref_phonemes), len(hyp_phonemes))
-            
             # Calculate viseme score (always unweighted)
             _, viseme_edit_distance = self.calculate_viseme_alignment(ref_visemes, hyp_visemes)
-            viseme_score = 1.0 - (viseme_edit_distance / max_viseme_len if max_viseme_len > 0 else 0.0)
+            max_viseme_len = max(len(ref_visemes), len(hyp_visemes))
+            standard_viseme_score = 1.0 - (viseme_edit_distance / max_viseme_len if max_viseme_len > 0 else 0.0)
             
-            # Calculate standard phoneme score
+            # Calculate standard phoneme score and ViPS score
+            max_phoneme_len = max(len(ref_phonemes), len(hyp_phonemes))
+            
+            # Standard phoneme score (unweighted)
             self.use_weighted_distance = False
-            _, standard_phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=False)
+            _, standard_phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes)
             standard_phoneme_score = 1.0 - (standard_phonetic_distance / max_phoneme_len if max_phoneme_len > 0 else 0.0)
             
-            # Calculate weighted ViPS score
+            # ViPS score (weighted)
             self.use_weighted_distance = True
-            _, weighted_phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=True)
+            _, weighted_phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes)
             vips_score = 1.0 - (weighted_phonetic_distance / max_phoneme_len if max_phoneme_len > 0 else 0.0)
             
-            # Restore original setting
-            self.use_weighted_distance = original_setting
-            
-            # Return all results in a single flat dictionary
+
             return {
                 'reference': reference,
                 'hypothesis': hypothesis,
                 'ref_phonemes': ref_phonemes,
                 'hyp_phonemes': hyp_phonemes,
-                'standard_viseme_score': viseme_score,
+                'standard_viseme_score': standard_viseme_score,
                 'standard_phoneme_score': standard_phoneme_score,
                 'vips_score': vips_score
             }
             
         except Exception as e:
             print(f"Error evaluating text pair: {str(e)}")
-            self.use_weighted_distance = original_setting
             return {
                 'reference': reference,
                 'hypothesis': hypothesis,
@@ -922,77 +849,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 'vips_score': 0.0
             }
     
-    def compare_standard_and_weighted(self, reference, hypothesis):
-        """
-        Evaluate a reference-hypothesis pair and return all three main scores:
-        - Standard Visemic Score
-        - Standard Phonetic Score 
-        - ViPS Score (weighted)
-        
-        Parameters:
-        - reference: Reference text (ground truth)
-        - hypothesis: Hypothesis text (predicted)
-        
-        Returns:
-        - Dictionary with evaluation results
-        """
-        # Store original weighted distance setting (but preserve IPA setting)
-        original_setting = self.use_weighted_distance
-        
-        # Normalize texts for consistency
-        normalized_reference = self.normalize_text(reference)
-        normalized_hypothesis = self.normalize_text(hypothesis)
-        
-        try:
-            # Evaluate with standard distance (no weights)
-            self.use_weighted_distance = False
-            standard_results = self.evaluate_pair(normalized_reference, normalized_hypothesis)
-            
-            # Evaluate with weighted distance
-            self.use_weighted_distance = True
-            weighted_results = self.evaluate_pair(normalized_reference, normalized_hypothesis)
-            
-            # Restore original setting
-            self.use_weighted_distance = original_setting
-            
-            # Combine results
-            combined_results = {
-                'reference': reference,
-                'hypothesis': hypothesis,
-                'ref_phonemes': standard_results.get('ref_phonemes', []),
-                'hyp_phonemes': standard_results.get('hyp_phonemes', []),
-                'standard': {
-                    'phonetic_edit_distance': standard_results.get('phonetic_edit_distance', float('inf')),
-                    'standard_phoneme_score': standard_results.get('vips_score', 0.0),
-                    'viseme_edit_distance': standard_results.get('viseme_edit_distance', float('inf')),
-                    'standard_viseme_score': standard_results.get('viseme_score', 0.0),
-                },
-                'weighted': {
-                    'phonetic_edit_distance': weighted_results.get('phonetic_edit_distance', float('inf')),
-                    'vips_score': weighted_results.get('vips_score', 0.0),
-                    'viseme_edit_distance': weighted_results.get('viseme_edit_distance', float('inf')),
-                    'viseme_score': weighted_results.get('viseme_score', 0.0),
-                }
-            }
-            
-            return combined_results
-            
-        except Exception as e:
-            print(f"ERROR in compare_standard_and_weighted: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            
-            # Restore original setting
-            self.use_weighted_distance = original_setting
-            
-            # Return a minimal result
-            return {
-                'reference': reference,
-                'hypothesis': hypothesis,
-                'error': str(e),
-                'standard': {'standard_viseme_score': 0.0, 'standard_phoneme_score': 0.0},
-                'weighted': {'viseme_score': 0.0, 'vips_score': 0.0}
-            }
     
     def calculate_additional_metrics(self, example_pairs):
         """
