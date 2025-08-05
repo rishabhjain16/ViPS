@@ -2,8 +2,58 @@
 
 ViPS is a unified audio-visual analysis framework that evaluates the similarity between reference and hypothesis transcriptions by integrating phonetic and visual speech dimensions through feature-based weighting. The feature-specific weights are based on entropy and visual distinctiveness. It builds on articulatory feature-based phonetic edit distance (PED), which uses phonetic features to compute linguistically grounded substitution costs. We adapt the classic dynamic programming algorithm for sequence alignment incorporating our feature-weighted phoneme distance as the substitution cost. This cost reflects the articulatory similarity between phonemes, assigning lower values to pairs that share perceptually salient features. The score ranges from 0 to 1, with higher values indicating greater similarity.
 
+## Installation
 
+### Setting up the Environment
 
+1. Clone the repository:
+```bash
+git clone https://github.com/rishabhjain16/ViPS.git
+cd ViPS
+```
+
+2. Create and activate a conda environment:
+```bash
+# Create new environment with Python 3.10
+conda create -n vips python=3.10
+conda activate vips
+```
+
+3. Install basic dependencies:
+```bash
+# Install PyTorch (adjust cuda version as needed)
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+
+# Install other dependencies
+pip install -r requirements.txt
+
+# Install espeak (required for phonemizer)
+# For Ubuntu/Debian:
+sudo apt-get install espeak-ng
+# For macOS:
+brew install espeak
+```
+
+### Verifying Installation
+
+To verify the installation:
+```bash
+# Activate the environment if not already active
+conda activate vips
+
+# Run a simple test
+python vips.py --help
+```
+
+If you see the help message, the installation was successful.
+
+### Troubleshooting
+
+If you encounter issues:
+1. Make sure espeak is installed and accessible from command line
+2. Verify that all dependencies are installed: `pip freeze`
+3. Check if CUDA is properly configured (if using GPU)
+4. For phonemizer issues, try reinstalling: `pip install phonemizer --force-reinstall`
 
 ## ViPS Metric Script Usage (`vips.py`)
 
