@@ -151,7 +151,7 @@ def process_snr_file(ref_path, hyp_path, evaluator):
     vips_scores = []
     for ref, hyp in tqdm(zip(references, hypotheses), total=len(references), desc="ViPS Progress"):
         try:
-            score = evaluator.compare_standard_and_weighted(ref, hyp)['weighted']['phonetic_alignment_score']
+            score = evaluator.evaluate_pair(ref, hyp)['vips_score']
             vips_scores.append(score)
         except Exception as e:
             logging.warning(f"Error calculating ViPS for ref: '{ref}', hyp: '{hyp}'. Error: {str(e)}")

@@ -851,74 +851,90 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
     
     def evaluate_pair(self, reference, hypothesis):
         """
-        Override parent method to evaluate a reference-hypothesis pair using weighted distance
+        Evaluate a reference-hypothesis pair and return all three scores at once:
+        - Standard Visemic Score
+        - Standard Phonetic Score
+        - ViPS Score (weighted)
         
         Args:
             reference: Reference text (ground truth)
             hypothesis: Hypothesis text (predicted)
             
         Returns:
-            dict: Evaluation results
+            dict: Evaluation results with all three scores
         """
-        # Normalize texts first
-        normalized_reference = self.normalize_text(reference)
-        normalized_hypothesis = self.normalize_text(hypothesis)
+        # Store original weighted setting
+        original_setting = self.use_weighted_distance
         
-        # Convert text to phonemes using normalized text
-        ref_phonemes = self.text_to_phonemes(normalized_reference)
-        hyp_phonemes = self.text_to_phonemes(normalized_hypothesis)
-        
-        # Convert phonemes to visemes
-        ref_visemes = [self.map_phoneme_to_viseme(p) for p in ref_phonemes]
-        hyp_visemes = [self.map_phoneme_to_viseme(p) for p in hyp_phonemes]
-        
-        # Calculate phonetic distances using appropriate method based on weighting setting
-        if self.use_weighted_distance:
-            # For weighted approach, use weighted sequence distance
-            _, phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=True)
-            phonetic_alignment = None  # We don't need the alignment for the weighted version
-        else:
-            # For standard approach, use standard sequence distance
-            phonetic_alignment, phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=False)
-        
-        # Calculate viseme alignment
-        alignment, edit_distance = self.calculate_viseme_alignment(ref_visemes, hyp_visemes)
-        
-        # Calculate normalized scores (0-1, higher is better)
-        max_viseme_len = max(len(ref_visemes), len(hyp_visemes))
-        max_phoneme_len = max(len(ref_phonemes), len(hyp_phonemes))
-        
-        # Standard viseme score (always calculated the same way)
-        viseme_score = 1.0 - (edit_distance / max_viseme_len if max_viseme_len > 0 else 0.0)
-        
-        # ViPS score (weighted or standard phonetic alignment score)
-        vips_score = 1.0 - (phonetic_distance / max_phoneme_len if max_phoneme_len > 0 else 0.0)
-        
-        # Return simplified results
-        results = {
-            'ref_phonemes': ref_phonemes,
-            'hyp_phonemes': hyp_phonemes,
-            'ref_visemes': ref_visemes,
-            'hyp_visemes': hyp_visemes,
-            'phonetic_edit_distance': phonetic_distance,
-            'viseme_edit_distance': edit_distance,
-            'viseme_score': viseme_score,
-            'vips_score': vips_score
-        }
-        
-        return results
+        try:
+            # Normalize texts
+            normalized_reference = self.normalize_text(reference)
+            normalized_hypothesis = self.normalize_text(hypothesis)
+            
+            # Convert to phonemes (do this only once)
+            ref_phonemes = self.text_to_phonemes(normalized_reference)
+            hyp_phonemes = self.text_to_phonemes(normalized_hypothesis)
+            
+            # Convert to visemes (do this only once)
+            ref_visemes = [self.map_phoneme_to_viseme(p) for p in ref_phonemes]
+            hyp_visemes = [self.map_phoneme_to_viseme(p) for p in hyp_phonemes]
+            
+            # Get lengths for normalization
+            max_viseme_len = max(len(ref_visemes), len(hyp_visemes))
+            max_phoneme_len = max(len(ref_phonemes), len(hyp_phonemes))
+            
+            # Calculate viseme score (always unweighted)
+            _, viseme_edit_distance = self.calculate_viseme_alignment(ref_visemes, hyp_visemes)
+            viseme_score = 1.0 - (viseme_edit_distance / max_viseme_len if max_viseme_len > 0 else 0.0)
+            
+            # Calculate standard phoneme score
+            self.use_weighted_distance = False
+            _, standard_phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=False)
+            standard_phoneme_score = 1.0 - (standard_phonetic_distance / max_phoneme_len if max_phoneme_len > 0 else 0.0)
+            
+            # Calculate weighted ViPS score
+            self.use_weighted_distance = True
+            _, weighted_phonetic_distance = self.calculate_sequence_distance(ref_phonemes, hyp_phonemes, use_weights=True)
+            vips_score = 1.0 - (weighted_phonetic_distance / max_phoneme_len if max_phoneme_len > 0 else 0.0)
+            
+            # Restore original setting
+            self.use_weighted_distance = original_setting
+            
+            # Return all results in a single flat dictionary
+            return {
+                'reference': reference,
+                'hypothesis': hypothesis,
+                'ref_phonemes': ref_phonemes,
+                'hyp_phonemes': hyp_phonemes,
+                'standard_viseme_score': viseme_score,
+                'standard_phoneme_score': standard_phoneme_score,
+                'vips_score': vips_score
+            }
+            
+        except Exception as e:
+            print(f"Error evaluating text pair: {str(e)}")
+            self.use_weighted_distance = original_setting
+            return {
+                'reference': reference,
+                'hypothesis': hypothesis,
+                'standard_viseme_score': 0.0,
+                'standard_phoneme_score': 0.0,
+                'vips_score': 0.0
+            }
     
     def compare_standard_and_weighted(self, reference, hypothesis):
         """
-        Evaluate a single reference-hypothesis pair with detailed metrics using both
-        standard and weighted approaches for comparison.
+        Evaluate a reference-hypothesis pair and return all three main scores:
+        - Standard Visemic Score
+        - Standard Phonetic Score 
+        - ViPS Score (weighted)
         
         Parameters:
         - reference: Reference text (ground truth)
         - hypothesis: Hypothesis text (predicted)
         
         Returns:
-        - Dictionary with evaluation results for both approaches
+        - Dictionary with evaluation results
         """
         # Store original weighted distance setting (but preserve IPA setting)
         original_setting = self.use_weighted_distance
@@ -1267,7 +1283,7 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         
         return metrics, per_example_metrics
     
-    def analyze_json_dataset_with_comparisons(self, json_file, output_file=None, max_samples=None, include_all_metrics=False, export_csv=False):
+    def analyze_json_dataset_with_comparisons(self, json_file, output_file=None, max_samples=None, include_all_metrics=False):
         """
         Analyze a dataset with both standard and weighted approaches for comparison
         
@@ -1276,11 +1292,22 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
         - output_file: Path to save analysis results (optional)
         - max_samples: Maximum number of samples to process (default: all)
         - include_all_metrics: Whether to include additional metrics
-        - export_csv: Whether to export results to CSV
         
         Returns:
         - Dictionary with analysis results
         """
+        # Save weights in the output directory if output_file is specified, otherwise in input JSON directory
+        if output_file:
+            weights_dir = os.path.dirname(os.path.abspath(output_file))
+            weights_file = os.path.join(weights_dir, 'vips_weights.json')
+        else:
+            json_dir = os.path.dirname(os.path.abspath(json_file))
+            weights_file = os.path.join(json_dir, 'vips_weights.json')
+        
+        print(f"Saving ViPS weights to {weights_file}")
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(weights_file), exist_ok=True)
+        self.save_weights_to_file(weights_file)
         try:
             # Load JSON data
             with open(json_file, 'r') as f:
@@ -1347,15 +1374,15 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             
             for ref, hyp in example_iterator:
                 # Evaluate with both approaches
-                results = self.compare_standard_and_weighted(ref, hyp)
+                results = self.evaluate_pair(ref, hyp)
                 all_results.append(results)
             
-            # Calculate summary statistics with simplified format
+            # Calculate summary statistics
             summary = {
                 'num_examples': len(all_results),
-                'standard_viseme_score': np.mean([r['standard']['standard_viseme_score'] for r in all_results]),
-                'standard_phoneme_score': np.mean([r['standard']['standard_phoneme_score'] for r in all_results]),
-                'vips_score': np.mean([r['weighted']['vips_score'] for r in all_results]),
+                'standard_viseme_score': np.mean([r['standard_viseme_score'] for r in all_results]),
+                'standard_phoneme_score': np.mean([r['standard_phoneme_score'] for r in all_results]),
+                'vips_score': np.mean([r['vips_score'] for r in all_results]),
             }
             
             # Add additional metrics if requested
@@ -1435,12 +1462,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
                 
                 print(f"\nSaved analysis results to {output_file}")
             
-            # Export to CSV if requested
-            if export_csv:
-                csv_file = os.path.join(os.path.dirname(os.path.abspath(output_file if output_file else 'results.json')), 'results.csv')
-                self.export_results_to_csv(all_results, per_example_metrics, csv_file)
-                print(f"Saved detailed results to CSV: {csv_file}")
-            
             return {
                 'summary': summary,
                 'results': all_results
@@ -1452,93 +1473,6 @@ class WeightedLipReadingEvaluator(LipReadingEvaluator):
             traceback.print_exc()
             return None
             
-    def export_results_to_csv(self, results, additional_metrics=None, csv_file='results.csv'):
-        """
-        Export evaluation results to a CSV file with proper column separation
-        
-        Parameters:
-        - results: List of evaluation result dictionaries
-        - additional_metrics: List of additional metrics dictionaries (optional)
-        - csv_file: Path to save the CSV file
-        """
-        import csv
-        
-        try:
-            # Create directory if needed
-            os.makedirs(os.path.dirname(os.path.abspath(csv_file)), exist_ok=True)
-            
-            # Define CSV columns - only include necessary columns
-            columns = [
-                'reference', 
-                'hypothesis',
-                'ref_phonemes',
-                'hyp_phonemes',
-                'standard_viseme_score',
-                'standard_phoneme_score',
-                'vips_score'
-            ]
-            
-            # Add additional metric columns if available
-            additional_metric_keys = []
-            if additional_metrics and len(additional_metrics) > 0:
-                for metrics in additional_metrics:
-                    if metrics:  # Check if metrics exist for this sample
-                        for key in metrics.keys():
-                            # Only add metrics that aren't already included and aren't reference/hypothesis
-                            if key not in ['reference', 'hypothesis'] and key not in columns and key not in additional_metric_keys:
-                                additional_metric_keys.append(key)
-                
-                # Sort additional metrics alphabetically for consistency
-                additional_metric_keys.sort()
-                columns.extend(additional_metric_keys)
-            
-            with open(csv_file, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.DictWriter(f, fieldnames=columns)
-                writer.writeheader()
-                
-                # Write each result row
-                for i, result in enumerate(results):
-                    # Make sure we have valid data for this result
-                    if not isinstance(result, dict) or 'standard' not in result or 'weighted' not in result:
-                        continue
-                        
-                    # Basic row information
-                    row = {
-                        'reference': result.get('reference', ''),
-                        'hypothesis': result.get('hypothesis', ''),
-                        'ref_phonemes': ' '.join(result.get('ref_phonemes', [])) if result.get('ref_phonemes') else '',
-                        'hyp_phonemes': ' '.join(result.get('hyp_phonemes', [])) if result.get('hyp_phonemes') else ''
-                    }
-                    
-                    # Standard metrics
-                    std = result.get('standard', {})
-                    row['standard_viseme_score'] = round(std.get('standard_viseme_score', 0), 4) if 'standard_viseme_score' in std else ''
-                    row['standard_phoneme_score'] = round(std.get('standard_phoneme_score', 0), 4) if 'standard_phoneme_score' in std else ''
-                    
-                    # Weighted metrics (just ViPS score)
-                    wgt = result.get('weighted', {})
-                    row['vips_score'] = round(wgt.get('vips_score', 0), 4) if 'vips_score' in wgt else ''
-                    
-                    # Add additional metrics if available
-                    if additional_metrics and i < len(additional_metrics) and additional_metrics[i]:
-                        metric_data = additional_metrics[i]
-                        for key in additional_metric_keys:
-                            value = metric_data.get(key, '')
-                            # Format numeric values
-                            if isinstance(value, (int, float)):
-                                row[key] = round(value, 4)
-                            else:
-                                row[key] = value
-                    
-                    writer.writerow(row)
-                    
-            print(f"Successfully exported {len(results)} results to {csv_file}")
-            
-        except Exception as e:
-            print(f"Error exporting results to CSV: {e}")
-            import traceback
-            traceback.print_exc()
-
 def main():
     """Main function for demonstrating and comparing different alignment approaches"""
     import argparse
@@ -1549,7 +1483,6 @@ def main():
     parser.add_argument('--save_dir', type=str, default=None, help='Directory to save all outputs (default: current directory)')
     parser.add_argument('--max_samples', type=int, default=None, help='Maximum number of samples to process')
     parser.add_argument('--all', action='store_true', help='Calculate all metrics including WER, CER, and others')
-    parser.add_argument('--csv', action='store_true', help='Export results to CSV file')
     parser.add_argument('--save-text', action='store_true', help='Save examples to readable text file')
     parser.add_argument('--weight-method', type=str, choices=['both', 'entropy', 'visual'], default='both',
                         help='Method to calculate feature weights: both (default), entropy-only, or visual-only')
@@ -1582,8 +1515,7 @@ def main():
             args.json, 
             output_file=results_path,
             max_samples=args.max_samples,
-            include_all_metrics=args.all,
-            export_csv=args.csv
+            include_all_metrics=args.all
         )
         
         if results:

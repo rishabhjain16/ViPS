@@ -43,16 +43,16 @@ def interactive_test():
             print(f"  Reference:  '{reference}'")
             print(f"  Hypothesis: '{hypothesis}'")
             
-            # Calculate scores
-            results = evaluator.compare_standard_and_weighted(reference, hypothesis)
+            # Calculate all scores at once
+            results = evaluator.evaluate_pair(reference, hypothesis)
             
             # Calculate additional metrics for this single pair
             additional_metrics, _ = evaluator.calculate_additional_metrics([(reference, hypothesis)])
             
-            # Display results
-            standard_viseme_score = results['standard']['standard_viseme_score']
-            standard_phoneme_score = results['standard']['standard_phoneme_score']
-            vips_score = results['weighted']['vips_score']
+            # Get scores directly from flat dictionary
+            standard_viseme_score = results['standard_viseme_score']
+            standard_phoneme_score = results['standard_phoneme_score']
+            vips_score = results['vips_score']
 
             print("\n" + "=" * 40)
             print(" RESULTS")

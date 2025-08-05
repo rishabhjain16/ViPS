@@ -1,0 +1,1 @@
+reference,hypothesis,ref_phonemes,hyp_phonemes,standard_viseme_score,standard_phoneme_score,vips_score,bertscore_f1,bertscore_precision,bertscore_recall,cer,meteor_score,rouge1_score,rouge2_score,rougeL_score,semantic_similarity,semantic_wer,sentence_bleu_score,wer,word_similarity
